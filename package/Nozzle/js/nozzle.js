@@ -351,6 +351,7 @@ function applyFilePrefixPostfix( prefix, postfix )
 		menu += "<div class=\"menuitem\" id=\"menu_expand_all\">Expand All</div>\
 			<div class=\"menuitem\" id=\"menu_collapse_all\">Collapse All</div>\
 			<div class=\"menuitem\" id=\"menu_width\">Set&nbsp;<span id=\"menu_width_state\">Auto</span>&nbsp;Width</div>\
+			<div class=\"menuitem\" id=\"menu_help_view\">Help</div>\
 			<div class=\"menuitem\" id=\"menu_print_view\">Print</div>";
 		
 		if ( nozzleMeta.contact != null )
@@ -386,6 +387,10 @@ function applyFilePrefixPostfix( prefix, postfix )
 			getFrame().animate( { "width": getCurrentFrameWidth() + "px", "left": getCurrentFrameLeftBorder() + "px" }, "slow" );
 		});
 
+		$( "#menu_help_view" ).click( function() {
+			window.open("http://baohongz.github.io/QuickRNASeq/guide.html");
+		});
+		
 		$( "#menu_print_view" ).click( function() {
 		
 			// cover the report with an opaque mask
