@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RNA-seq Quality Control: SRR815044</title>
+    
+    <link rel="stylesheet" href="../css/nature.css" type="text/css" />
+
+    <link rel="top" title="RSeQC  documentation" href="#" /> 
+  </head>
+  <body>
+
+    <div class="document">
+          <div class="body">
+            
+<div class="section" id="rseqc-an-rna-seq-quality-control-package">
+<h1>SRR815044 RNA-seq Quality Control</h1>
+<p>Deep transcriptome sequencing (RNA-seq) provides massive and valuable information about
+functional elements in the genome. Ideally, transcriptome
+sequencing should be able to directly identify and quantify all RNA species, small or large,
+low or high abundance. However, RNA-seq is a complicated, multistep process involving sample
+preparation, amplification, fragmentation, purification and sequencing. A single improper
+operation would result in biased or even unusable data. Therefore, it is always a good
+practice to check the quality of your RNA-seq data before analyses.
+</div>
+<div class="section" id="usage-information">
+<h1>QC matrix</h1>
+<div class="section" id="bam-stat-py">
+<h2>Read Mapping Statistics</h2>
+<p>The sample is sequenced as non-stranded RNA-seq<p>
+<pre>
+
+#==================================================
+#All numbers are READ count
+#==================================================
+
+Total records:                          120196462
+
+QC failed:                              0
+Optical/PCR duplicate:                  0
+Non primary hits                        5366844
+Unmapped reads:                         0
+mapq < mapq_cut (non-unique):           3869874
+
+mapq >= mapq_cut (unique):              110959744
+Read-1:                                 55479872
+Read-2:                                 55479872
+Reads map to '+':                       55479872
+Reads map to '-':                       55479872
+Non-splice reads:                       86454160
+Splice reads:                           24505584
+Reads mapped in proper pairs:           110959744
+Proper-paired reads map to different chrom:0
+
+</pre
+</div>
+</div>
+
+
+
+<div class="section" id="read-distribution-py">
+<h2>read_distribution<a class="headerlink" href="#read-distribution-py" title="Permalink to this headline"></a></h2>
+<p>Provided a BAM/SAM file and reference gene model, this module will calculate how mapped
+reads were distributed over genome feature (like CDS exon, 5&#8217;UTR exon, 3&#8217; UTR exon, Intron,
+Intergenic regions). When genome features are overlapped (e.g. a region could be annotated
+as both exon and intron by two different transcripts) , they are prioritize as:
+CDS exons &gt; UTR exons &gt; Introns &gt; Intergenic regions, for example, if a read was mapped to
+both CDS exon and intron, it will be assigned to CDS exons.</p>
+<ul class="simple">
+<li>&#8220;Total Reads&#8221;: This does NOT include those QC fail,duplicate and non-primary hit reads</li>
+<li>&#8220;Total Tags&#8221;: reads spliced once will be counted as 2 tags, reads spliced twice will be counted as 3 tags, etc. And because of this, &#8220;Total Tags&#8221; &gt;= &#8220;Total Reads&#8221;</li>
+<li>&#8220;Total Assigned Tags&#8221;: number of tags that can be unambiguously assigned the 10 groups (see below table).</li>
+<li>Tags assigned to &#8220;TSS_up_1kb&#8221; were also assigned to &#8220;TSS_up_5kb&#8221; and &#8220;TSS_up_10kb&#8221;, tags assigned to &#8220;TSS_up_5kb&#8221; were also assigned to &#8220;TSS_up_10kb&#8221;. Therefore, &#8220;Total Assigned Tags&#8221; = CDS_Exons + 5&#8217;UTR_Exons + 3&#8217;UTR_Exons + Introns + TSS_up_10kb + TES_down_10kb.</li>
+<li>When assign tags to genome features, each tag is represented by its middle point.</li>
+</ul>
+<p>RSeQC cannot assign those reads that:</p>
+<ul class="simple">
+<li>hit to intergenic regions that beyond region starting from TSS upstream 10Kb to TES downstream 10Kb.</li>
+<li>hit to regions covered by both 5&#8217;UTR and 3&#8217; UTR. This is possible when two head-to-tail transcripts are overlapped in UTR regions.</li>
+<li>hit to regions covered by both TSS upstream 10Kb and TES downstream 10Kb.</li>
+</ul>
+<pre>
+processing /hpc/grid/shared/ngsdb/annotation/ensembl/hg19_Ensembl.bed ... Done
+
+Total Reads                   114829618
+Total Tags                    141672477
+Total Assigned Tags           136230875
+=====================================================================
+Group               Total_bases         Tag_count           Tags/Kb             
+CDS_Exons           36860499            99555871            2700.88           
+5'UTR_Exons         35730397            3910557             109.45            
+3'UTR_Exons         57806939            26564530            459.54            
+Introns             1453670930          5477635             3.77              
+TSS_up_1kb          31788498            30494               0.96              
+TSS_up_5kb          141452483           98153               0.69              
+TSS_up_10kb         252939815           146452              0.58              
+TES_down_1kb        33557126            194141              5.79              
+TES_down_5kb        145246303           454424              3.13              
+TES_down_10kb       255858394           575830              2.25              
+=====================================================================
+
+</pre>
+</div>
+
+
+<div class="section" id="read-duplication-py">
+<h2>read_duplication<a class="headerlink" href="#read-duplication-py" title="Permalink to this headline"></a></h2>
+<p>Two strategies were used to determine reads duplication rate:
+* Sequence based: reads with exactly the same sequence content are regarded as duplicated reads.
+* Mapping based: reads mapped to the same genomic location are regarded as duplicated reads. For splice reads, reads mapped to the same starting position and splice the same way are regarded as duplicated reads.</p>
+
+<a class="reference internal image-reference" href="SRR815044.read_duplication.DupRate_plot.png"><img alt="SRR815044.read_duplication.DupRate_plot.png" src="SRR815044.read_duplication.DupRate_plot.png" style="width: 480.0px; height: 480.0px;" /></a>
+</div>
+
+
+<div class="section" id="read-gc-py">
+<h2>read_GC<a class="headerlink" href="#read-gc-py" title="Permalink to this headline"></a></h2>
+<p>Distribution of reads vs. percentages of GC content.</p>
+<a class="reference internal image-reference" href="SRR815044.read_GC.GC_plot.png"><img alt="SRR815044.read_GC.GC_plot.png" src="SRR815044.read_GC.GC_plot.png" style="width: 480.0px; height: 480.0px;" /></a>
+</div>
+
+
+
+<div class="section" id="read-nvc-py">
+<h2>read_NVC<a class="headerlink" href="#read-nvc-py" title="Permalink to this headline"></a></h2>
+<p>This module is used to check the nucleotide composition bias. In ideal condition (genome is random and RNA-seq reads is
+randomly sampled from genome), we expect A%=C%=G%=T%=25% at each position of reads.
+It is perfectly normal to observe both a slight GC bias and a distinctly non-random base composition over the first 12 bases of the data. This is observed when looking, for instance, at the IVC (intensity versus cycle number) plots which are part of the output of the Pipeline. In genomic DNA sequencing, the base composition is usually quite uniform across all bases; but in mRNA-Seq, the base composition is noticeably uneven across the first 10 to 12 bases. 
+Illumina believes this effect is caused by the "not so random" nature of the random priming process used in the protocol. This may explain why there is a slight overall G/C bias in the starting positions of each read. The first 12 bases probably represent the sites that were being primed by the hexamers used in the random priming process. 
+The first twelve bases in the random priming full-length cDNA sequencing protocol (mRNA-seq) always have IVC plots that look like what has been described. This is because the random priming is not truly random and the first twelve bases (the length of two hexamers) are biased towards sequences that prime more efficiently.This is entirely normal and expected. 
+This bias could be easily examined by NVC (Nucleotide versus cycle) plot. NVC plot is generated by overlaying all
+reads together, then calculating nucleotide composition for each position of read
+(or each sequencing cycle).
+
+<p>NOTE: this program expect a fixed read length</p>
+<a class="reference internal image-reference" href="SRR815044.read_NVC.NVC_plot.png"><img alt="SRR815044.read_NVC.NVC_plot.png" src="SRR815044.read_NVC.NVC_plot.png" style="width: 480.0px; height: 480.0px;" /></a>
+</div>
+
+
+
+<div class="section" id="read-quality-py">
+<h2>read_quality<a class="headerlink" href="#read-quality-py" title="Permalink to this headline"></a></h2>
+<p>According to SAM specification, if Q is the character to represent &#8220;base calling quality&#8221;
+in SAM file, then Phred Quality Score = ord(Q) - 33. Here ord() is python function that
+returns an integer representing the Unicode code point of the character when the argument
+is a unicode object, for example, ord(&#8216;a&#8217;) returns 97. Phred quality score is widely used
+to measure &#8220;reliability&#8221; of base-calling, for example, phred quality score of 20 means
+there is 1/100 chance that the base-calling is wrong, phred quality score of 30 means there
+is 1/1000 chance that the base-calling is wrong. In general: Phred quality score = -10xlog(10)P,
+here P is probability that base-calling is wrong.</p>
+
+<a class="reference internal image-reference" href="SRR815044.read_quality.qual.boxplot.png"><img alt="SRR815044.read_quality.qual.boxplot.png" src="SRR815044.read_quality.qual.boxplot.png" style="width: 480.0px; height: 480.0px;" /></a>
+<a class="reference internal image-reference" href="SRR815044.read_quality.qual.heatmap.png"><img alt="SRR815044.read_quality.qual.heatmap.png" src="SRR815044.read_quality.qual.heatmap.png" style="width: 440.0px; height: 440.0px;" /></a>
+<p>Heatmap: use different color to represent nucleotide density (&#8220;blue&#8221;=low density,&#8221;orange&#8221;=median density,&#8221;red&#8221;=high density&#8221;)</p>
+</div>
+
+
+<div class="section" id="genebody-coverage-py">
+<h2>geneBody_coverage<a class="headerlink" href="#genebody-coverage-py" title="Permalink to this headline"></a></h2>
+<p>Read coverage over gene body. This module is used to check if reads coverage is uniform and
+if there is any 5’/3’ bias. This module scales all transcripts to 100 nt and calculates the
+number of reads covering each nucleotide position. Finally, it generates a plot illustrating
+the coverage profile along the gene body. </p>
+<a class="reference internal image-reference" href="SRR815044.geneBodyCoverage.png"><img alt="SRR815044.geneBodyCoverage.png" src="SRR815044.geneBodyCoverage.png" style="width: 480.0px; height: 480.0px;" /></a>
+</div>
+
+
+<div class="section" id="inner-distance-py">
+<h2>inner_distance<a class="headerlink" href="#inner-distance-py" title="Permalink to this headline"></a></h2>
+<p>This module is used to calculate the inner distance (or insert size) between two paired RNA
+reads. The distance is the mRNA length between two paired fragments. We first determine the
+genomic (DNA) size between two paired reads: D_size = read2_start - read1_end, then</p>
+<ul class="simple">
+<li>if two paired reads map to the same exon: inner distance = D_size</li>
+<li>if two paired reads map to different exons:inner distance = D_size - intron_size</li>
+<li>if two paired reads map non-exonic region (such as intron and intergenic region): inner distance = D_size</li>
+<li>The inner_distance might be a negative value if two fragments were overlapped.</li>
+</ul>
+<p>NOTE: Not all read pairs were used to estimate the inner distance distribution. Those low
+quality, PCR duplication, multiple mapped reads were skipped.</p>
+
+<a class="reference internal image-reference" href="SRR815044.inner_distance_plot.png"><img alt="SRR815044.inner_distance_plot.png" src="SRR815044.inner_distance_plot.png" style="width: 480.0px; height: 480.0px;" /></a>
+</div>
+
+
+<div class="section" id="junction-annotation-py">
+<h2>junction_annotation<a class="headerlink" href="#junction-annotation-py" title="Permalink to this headline"></a></h2>
+<p>This program will compare detected splice junctions to reference gene model. splicing
+annotation is performed in two levels: splice event level and splice junction level.</p>
+<ul class="simple">
+<li>splice event: An RNA read, especially long read, can be spliced 2 or more times, each time is called a splicing event; In this sense, 100 spliced reads can produce &gt;= 100 splicing events.</li>
+<li>splice junction: multiple splicing events spanning the same intron can be consolidated into one splicing junction.</li>
+</ul>
+<p>All detected junctions can be grouped to 3 exclusive categories:</p>
+<ol class="arabic simple">
+<li>Annotated: The junction is part of the gene model. Both splice sites, 5&#8217; splice site
+(5&#8217;SS) and 3&#8217;splice site (3&#8217;SS) can be annotated by reference gene model.</li>
+<li>complete_novel: Complete new junction. Neither of the two splice sites cannot be annotated by gene model</li>
+<li>partial_novel: One of the splice site (5&#8217;SS or 3&#8217;SS) is new, while the other splice site is annotated (known)</li>
+</ol>
+<a class="reference internal image-reference" href="SRR815044.junction_annotation.splice_events.png"><img alt="SRR815044.junction_annotation.splice_events.png" src="SRR815044.junction_annotation.splice_events.png"/></a>
+<a class="reference internal image-reference" href="SRR815044.junction_annotation.splice_junction.png"><img alt="SRR815044.junction_annotation.splice_junction.png" src="SRR815044.junction_annotation.splice_junction.png"/></a>
+</div>
+
+
+
+
+<div class="section" id="junction-saturation-py">
+<h2>junction_saturation<a class="headerlink" href="#junction-saturation-py" title="Permalink to this headline"></a></h2>
+<p>It&#8217;s very important to check if current sequencing depth is deep enough to perform
+alternative splicing analyses. For a well annotated organism, the number of expressed genes
+in particular tissue is almost fixed so the number of splice junctions is also fixed. The fixed
+splice junctions can be predetermined from reference gene model. All (annotated) splice
+junctions should be rediscovered from a saturated RNA-seq data, otherwise, downstream
+alternative splicing analysis is problematic because low abundance splice junctions are
+missing. This module checks for saturation by resampling 5%, 10%, 15%, ..., 95% of total
+alignments from BAM or SAM file, and then detects splice junctions from each subset and
+compares them to reference gene model.</p>
+
+<a class="reference internal image-reference" href="SRR815044.junctionSaturation_plot.png"><img alt="SRR815044.junctionSaturation_plot.png" src="SRR815044.junctionSaturation_plot.png" /></a>
+
+
+<div class="section" id="cite-us">
+<h1>Citation<a class="headerlink" href="#cite-us" title="Permalink to this headline"></a></h1>
+<p>Wang L, Wang S, Li W* <strong>RSeQC: quality control of RNA-seq experiments</strong> <em>Bioinformatics</em>
+(2012) 28 (16): 2184-2185. doi: 10.1093/bioinformatics/bts356 <a class="reference external" href="http://www.ncbi.nlm.nih.gov/pubmed?term=%2022743226">pubmed</a></p>
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

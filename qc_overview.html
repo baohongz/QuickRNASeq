@@ -1,0 +1,664 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset="utf-8">
+<!-- SlickGrid -->
+<link rel="stylesheet" type="text/css" href="package/SlickGrid/slick.grid.css"/>
+<link rel="stylesheet" type="text/css" href="package/SlickGrid/css/smoothness/jquery-ui-1.11.4.css"/>
+<link rel="stylesheet" type="text/css" href="package/SlickGrid/examples/examples.css"/>
+<link rel="stylesheet" type="text/css" href="package/SlickGrid/controls/slick.pager.css"/>
+<link rel="stylesheet" type="text/css" href="package/d3/d3.parcoords.css">
+
+</head>
+
+<body>
+
+<script type="text/javascript" src="package/jquery.js"></script>
+<script type="text/javascript" src="package/jquery.ui.js"></script>
+<script type="text/javascript" src="package/jquery.ui.sortable.js"></script>
+<script type="text/javascript" src="package/jquery.ui.button.js"></script>
+<script type="text/javascript" src="package/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="package/d3/d3.min.js"></script>
+<script type="text/javascript" src="package/d3/d3.parcoords.js"></script>
+<script type="text/javascript" src="package/SlickGrid/divgrid.js"></script>
+<script type="text/javascript" src="package/SlickGrid/lib/jquery.event.drag-2.2.js"></script>
+<script type="text/javascript" src="package/SlickGrid/slick.core.js"></script>
+<script type="text/javascript" src="package/SlickGrid/slick.grid.js"></script>
+<script type="text/javascript" src="package/SlickGrid/slick.dataview.js"></script>
+<script type="text/javascript" src="package/SlickGrid/controls/slick.pager.js"></script>
+
+<!-- End SlickGrid -->
+
+
+<style>
+body, html {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  background-color: white;
+}
+body {
+  overflow-y: scroll;
+}
+
+#grid, #pager {
+  width: 100%;
+}
+#grid {
+  bottom: 0;
+  height: 300px;
+}
+#pager {
+  bottom: 306px;
+  height: 20px;
+}
+.slick-row:hover {
+  font-weight: bold;
+  color: #069;
+}
+</style>
+
+</head>
+
+<div id="dataset" style="display:none;">
+Sample	subject_id	histological_type	sex	Total_reads	Uniq_Rate	Multi_Rate	Unmap_Rate	Uniq_Mapped_Reads	Gene_Rate	Ambiguity_Rate	No_Feature_Rate	Total_Tags	CDS_Exon	5UTR_Exon	3UTR_Exon	Introns	Intergenic	Counted_Reads	Norm_Factor	Avg_Corr	Corr_diff	MADScore	isOutlier
+SRR607214	GTEX-N7MS	Blood	male	39769361	54.59	23.5	21.91	21709152	84.17	3.3	12.53	79997788	80.46	1.91	10.18	6.91	0.54	18263412	0.5311	0.6557	-0.11942	-2.408483	N
+SRR615261	GTEX-N7MS	Blood Vessel	male	47785162	79.69	2.21	18.1	38080210	81.82	4.13	14.05	92073455	62.64	3.71	21.43	11.24	0.99	31147213	1.0706	0.7919	0.022729	0.270667	N
+SRR603068	GTEX-N7MS	Brain	male	53339811	59.45	2.15	38.4	31709223	87.36	5	7.64	71574343	58.71	3.48	31	5.8	1.02	27680544	0.9161	0.722	-0.050182	-1.103524	N
+SRR821282	GTEX-N7MS	Esophagus	male	44678159	65.58	2.62	31.8	29301980	84.25	4.75	11	65521867	59.66	4.07	25.76	9.41	1.1	24678621	1.0696	0.8156	0.047458	0.736735	N
+SRR608096	GTEX-N7MS	Heart	male	58482196	72.91	2.8	24.29	42639474	88.65	4.14	7.22	99422450	66.98	3.08	23.35	5.93	0.65	37789178	0.7819	0.8065	0.037945	0.557444	N
+SRR612839	GTEX-N7MS	Muscle	male	52016412	70.81	2.37	26.82	36833539	87.46	3.99	8.55	91091711	73.66	3.03	16.35	5.96	1	32201637	0.5618	0.7373	-0.034295	-0.804085	N
+SRR816609	GTEX-N7MS	Pituitary	male	38214685	62.27	2.37	35.36	23795085	83.42	4.29	12.29	56491739	61.05	5.31	22.61	9.59	1.44	19813180	1.539	0.7786	0.008844	0.008968	N
+SRR821518	GTEX-N7MS	Testis	male	61509101	83.31	3.85	12.84	51240492	73.1	4.44	22.46	118871897	57.04	5.84	18.65	14.93	3.54	35393938	1.8134	0.6069	-0.170353	-3.368443	N
+SRR607679	GTEX-N7MS	Thyroid	male	80820067	51.37	2.38	46.25	41513509	82.44	4.52	13.04	98169866	57.07	4.28	26.84	10.69	1.12	34203030	1.5151	0.8226	0.054772	0.874598	N
+SRR809283	GTEX-N7MT	Blood	female	48818685	64.62	10.77	24.61	31545658	87.91	3.65	8.44	87610141	72.58	2.91	17.69	5.99	0.82	27719014	0.8298	0.6868	-0.086913	-1.795804	N
+SRR808044	GTEX-N7MT	Blood Vessel	female	44714926	81.42	2.92	15.66	36408987	79.25	4.64	16.11	85710354	57.18	4.62	23.35	13.78	1.08	28843062	1.2127	0.8133	0.045045	0.691267	N
+SRR598671	GTEX-N7MT	Brain	female	45163430	70.26	3.12	26.62	31730971	87.45	3.72	8.83	70589247	57.65	3.84	30.62	6.65	1.24	27730346	0.8961	0.7403	-0.031152	-0.744854	N
+SRR598509	GTEX-N7MT	Heart	female	44403911	71.19	4.3	24.51	31610419	90.6	2.68	6.72	68540064	74.38	4.59	14.78	5.69	0.56	28636889	0.3763	0.793	0.023859	0.291968	N
+SRR600784	GTEX-N7MT	Lung	female	28065576	76.74	2.3	20.96	21536903	75.34	4.14	20.52	54075054	58.33	3.88	20.16	16.65	0.98	16213537	1.5117	0.794	0.024923	0.312016	N
+SRR813208	GTEX-N7MT	Pancreas	female	53422565	72.34	4.37	23.29	38647825	79.47	4.18	16.35	92907024	59.58	6.43	19.52	12.78	1.69	30643871	1.1667	0.7609	-0.009616	-0.338947	N
+SRR821573	GTEX-N7MT	Pituitary	female	54452379	85.61	3.52	10.87	46615205	79.72	4.31	15.96	109610396	58.18	5.67	21.93	12.5	1.72	37113779	1.5231	0.7757	0.005854	-0.04739	N
+SRR810945	GTEX-NFK9	Blood	male	41131423	60.85	18.12	21.03	25026758	92.29	2.12	5.59	78725569	82.9	1.35	12.12	2.6	1.03	23091769	0.4239	0.6788	-0.095303	-1.953928	N
+SRR811819	GTEX-NFK9	Blood Vessel	male	49527122	85.48	2.81	11.71	42333832	89.24	4.86	5.9	104929907	68.76	3.33	22.9	4	1.02	37775556	0.9047	0.8105	0.042134	0.636399	N
+SRR820689	GTEX-NFK9	Esophagus	male	33541344	81.35	3.4	15.25	27285927	83.04	4.08	12.89	66371992	64.24	3.68	20.96	9.03	2.1	22564206	1.0106	0.7356	-0.036013	-0.836465	N
+SRR602106	GTEX-NFK9	Heart	male	65071994	80.04	4.76	15.2	52081155	90.41	3.15	6.44	120781179	73.84	4.05	16.31	5.18	0.62	47076001	0.4977	0.7751	0.005247	-0.058828	N
+SRR607166	GTEX-NFK9	Lung	male	58741362	76.22	2.91	20.87	44769759	79.02	4.18	16.8	104768669	56.85	4.21	23.76	14.04	1.15	35352472	1.3352	0.7973	0.028393	0.377419	N
+SRR598044	GTEX-NFK9	Muscle	male	58643842	80.85	3.36	15.79	47415688	92.31	4.29	3.4	118019520	73.06	2.92	21.22	2.22	0.58	43760366	0.4929	0.7356	-0.035978	-0.835816	N
+SRR614287	GTEX-NFK9	Nerve	male	47388876	70.58	2.4	27.02	33448240	80.38	4.17	15.45	78719060	57.78	3.92	24.33	12.79	1.17	26873945	1.409	0.8075	0.03905	0.578271	N
+SRR811029	GTEX-NFK9	Pancreas	male	51304957	71.95	7.01	21.04	36915791	85.44	3.33	11.23	102857451	75.73	4.51	11.16	7.53	1.08	31498071	0.7111	0.7641	-0.006237	-0.275263	N
+SRR815280	GTEX-NFK9	Prostate	male	85593813	80.46	4.55	14.99	68870174	86.78	4.34	8.87	157181895	66.39	4.93	20.36	7.25	1.07	59672258	1.0472	0.7968	0.027859	0.367357	N
+SRR820839	GTEX-NFK9	Testis	male	51113138	66.02	2.89	31.09	33745855	79.66	4.22	16.12	78828704	59.86	5.07	21.28	11.49	2.3	26189129	1.8976	0.7241	-0.048046	-1.063261	N
+SRR603834	GTEX-NFK9	Thyroid	male	61642193	79.4	3.49	17.11	48945352	77.24	3.97	18.79	112162661	55.4	5.04	22.21	15.94	1.41	37779347	1.4755	0.8081	0.039603	0.588693	N
+SRR808836	GTEX-NPJ8	Blood Vessel	male	53974446	80.59	3.31	16.1	43500129	83.6	4.92	11.48	105771560	61.49	3.99	24.2	9.34	0.98	36356460	1.1901	0.8205	0.052567	0.833039	N
+SRR598124	GTEX-NPJ8	Brain	male	55608656	65.46	3.1	31.44	36401218	90.01	3.5	6.49	80944673	59.09	3.31	31.71	4.98	0.91	32748450	0.7718	0.7562	-0.014527	-0.431522	N
+SRR817306	GTEX-NPJ8	Esophagus	male	62209065	79.22	3.9	16.88	49284963	81.29	4.12	14.59	119119298	59.08	4.19	23.33	12.22	1.19	39999830	1.1821	0.7575	-0.013209	-0.406682	N
+SRR598148	GTEX-NPJ8	Heart	male	53693956	68.13	3.35	28.52	36580218	90.18	4.07	5.75	85338697	67.87	3.32	23.5	4.78	0.52	32982424	0.6711	0.8061	0.0375	0.549064	N
+SRR603750	GTEX-NPJ8	Lung	male	25962857	67.55	3.24	29.21	17537879	77.31	4.54	18.15	43842828	56.74	4.79	22.35	15	1.13	13552260	1.5163	0.8076	0.039092	0.57906	N
+SRR601695	GTEX-NPJ8	Muscle	male	96240522	43.22	1.77	55.01	41591412	88.88	4.31	6.81	104303531	71.35	2.62	20.49	4.94	0.6	36961095	0.5957	0.7447	-0.026529	-0.657714	N
+SRR615790	GTEX-NPJ8	Nerve	male	61182017	58.84	2.45	38.71	36001541	81.31	4.59	14.11	86802375	58.93	4.35	23.85	11.92	0.94	29263718	1.4776	0.8257	0.057977	0.934992	N
+SRR819771	GTEX-NPJ8	Pancreas	male	60265701	80.07	4.82	15.11	48253613	79.21	4.63	16.16	117403197	57.66	6.67	21.33	12.92	1.41	38109493	1.099	0.763	-0.007418	-0.297521	N
+SRR807949	GTEX-NPJ8	Pituitary	male	95246707	85.12	3.44	11.44	81070988	78.82	4.11	17.06	187210542	52.79	5.66	26.14	13.58	1.84	63821983	1.4677	0.7604	-0.010112	-0.348306	N
+SRR820234	GTEX-NPJ8	Prostate	male	60423220	79.72	3.97	16.31	48169971	81.22	4.7	14.08	113638039	55.04	4.95	26.81	12.05	1.14	39109357	1.4325	0.8328	0.065426	1.075392	N
+SRR810899	GTEX-NPJ8	Testis	male	57950635	81.5	3.71	14.79	47229339	80.55	4.34	15.11	112215852	56.72	5.05	24.49	12.4	1.34	37988824	1.6409	0.8318	0.06432	1.054552	N
+SRR602951	GTEX-NPJ8	Thyroid	male	100317976	38.72	2.1	59.18	38839097	82.06	4.56	13.38	91622705	56.6	4.56	26.74	10.79	1.31	31859423	1.438	0.8272	0.059521	0.964104	N
+SRR815494	GTEX-O5YT	Blood	male	61808169	65.24	4.9	29.86	40321706	90.83	3.49	5.68	102754156	68.64	2.98	23.43	4.01	0.95	36615759	0.4864	0.6326	-0.143546	-2.863187	N
+SRR809785	GTEX-O5YT	Blood Vessel	male	60730604	86.73	2.59	10.68	52670988	87.21	4.51	8.28	127648770	64.36	3.48	24.84	6.61	0.72	45928016	1.0315	0.8172	0.049137	0.768392	N
+SRR814003	GTEX-O5YT	Esophagus	male	64985455	85.69	3.07	11.24	55689131	87.79	4.46	7.75	134503936	64.42	3.5	25.09	6.29	0.69	48884496	1.0683	0.8282	0.060571	0.983895	N
+SRR820316	GTEX-O5YT	Heart	male	66455677	81.96	2.79	15.25	54466527	87.71	3.98	8.31	126596965	65.92	2.68	23.86	6.41	1.12	47761247	0.7254	0.7777	0.007892	-0.008968	N
+SRR821525	GTEX-O5YT	Lung	male	56250586	78.65	2.75	18.6	44239681	84.01	4.05	11.94	101956644	56.65	3.95	27.66	10.73	1.02	37151393	1.4021	0.7991	0.030225	0.411942	N
+SRR815044	GTEX-O5YT	Muscle	male	65449073	84.77	2.96	12.27	55479872	90.7	4.04	5.26	136230875	73.08	2.87	19.5	4.02	0.53	50313464	0.4741	0.7317	-0.040049	-0.912547	N
+SRR812080	GTEX-O5YT	Nerve	male	58246823	86.85	3.1	10.05	50584473	83.06	4.51	12.43	119520015	59.27	4.01	25.32	10.52	0.87	42003559	1.3128	0.8266	0.058932	0.952995	N
+SRR810761	GTEX-O5YT	Pancreas	male	64065959	73.8	5.49	20.71	47282622	84.98	4.5	10.52	125153737	70.03	5.2	16.12	7.76	0.9	40127521	0.8369	0.7685	-0.001651	-0.188832	N
+SRR818850	GTEX-O5YT	Testis	male	64388347	84.18	3.52	12.3	54198935	80.68	4.2	15.13	125400250	58.31	4.71	23.9	10.92	2.17	42846131	1.8885	0.7161	-0.056329	-1.219374	N
+</div>
+
+<div id="canvas1" class="parcoords" style="height:240px;"></div>
+
+<div style="padding:4px;">
+<b>Controls:</b> 
+<b>Brush</b> - Drag vertically along an axis.
+<b>Remove Brush</b> - Tap the axis background.
+<b>Reorder Axes</b> - Drag an axis label horizontally.
+<b>Color Lines by Values</b> - Click on an axis label.
+<b>Invert Axis</b> - Double click on an axis label.
+<b>Remove Axis</b> - Drag axis label off the left or the right edge.
+<b>Tooltip</b> - Click on a line to show values, move out of the canvas to remove tooptip.
+</div>
+
+<hr>
+<div id="dialog_Total_reads" title="Total_reads" style="display:none;">
+  <p>Total number of sequencing reads from raw fastq file</p>
+</div>
+<div id="dialog_Uniq_Rate" title="Uniq_Rate" style="display:none;">
+  <p>Percentage of reads uniquely mapped to the reference genome.</p>
+</div>
+<div id="dialog_Multi_Rate" title="Multi_Rate" style="display:none;">
+  <p>Percentage of reads mapped equally well to multiple locations on the reference genome.</p>
+</div>
+<div id="dialog_Unmap_Rate" title="Unmap_Rate" style="display:none;">
+  <p>Percentage of reads not mapped to the reference genome.</p>
+</div>
+<div id="dialog_Uniq_Mapped_Reads" title="Uniq_Mapped_Reads" style="display:none;">
+  <p>Number of uniquely mapped reads.</p>
+</div>
+<div id="dialog_Gene_Rate" title="Gene_Rate" style="display:none;">
+  <p>Percentage of reads mapped to unique gene region, including Exons, UTRs and Introns.</p>
+</div>
+<div id="dialog_Ambiguity_Rate" title="Ambiguity_Rate" style="display:none;">
+  <p>Percentage of reads mapped to gene-overlapping region and can't be unambiguously assigned to either gene.</p>
+</div>
+<div id="dialog_No_Feature_Rate" title="No_Feature_Rate" style="display:none;">
+  <p>Percentage of reads mapped to unannotated genomic regions.</p>
+</div>
+<div id="dialog_Total_Tags" title="Total_Tags" style="display:none;">
+  <p>Total number of tags (reads, one paired-end read counted as two reads)</p>
+</div>
+<div id="dialog_CDS_Exon" title="CDS_Exon" style="display:none;">
+  <p>Percentage of mapped reads on Exons.</p>
+</div>
+<div id="dialog_5UTR_Exon" title="5UTR_Exon" style="display:none;">
+  <p>Percentage of mapped reads on 5' UTR.</p>
+</div>
+<div id="dialog_3UTR_Exon" title="3UTR_Exon" style="display:none;">
+  <p>Percentage of mapped reads on 3' UTR.</p>
+</div>
+<div id="dialog_Introns" title="Introns" style="display:none;">
+  <p>Percentage of mapped reads on Introns.</p>
+</div>
+<div id="dialog_Intergenic" title="Intergenic" style="display:none;">
+  <p>Percentage of mapped reads on Intergenic regions.</p>
+</div>
+<div id="dialog_Counted_Reads" title="Counted_Reads" style="display:none;">
+  <p>Reads counted by featureCounts (=uniquely mapped read  * uniq_rate)</p>
+</div>
+<div id="dialog_Norm_Factor" title="Norm_Factor" style="display:none;">
+  <p>Normalization factor calculated by edgeR</p>
+</div>
+<div id="dialog_Avg_Corr" title="Avg_Corr" style="display:none;">
+  <p>Average correlation where this sample is involved</p>
+</div>
+<div id="dialog_Corr_diff" title="Corr_diff" style="display:none;">
+  <p>
+Avg_Corr : Average correlation where this sample is involved; <br><br>
+Avg_Rest : Average correlation where this sample is NOT involved; <br><br>
+Corr_diff : The difference between Avg_Corr and Avg_Rest.</p>
+</div>
+<div id="dialog_MADScore" title="MADScore" style="display:none;">
+  <p>
+(1) For each sample, calculate the correlation difference. This is simply a difference between the average of all the pair wise correlations that involve the sample (for the same group) and the average of all the pair wise correlations that do not involve the sample. For example, if we have a, b, c, d for group 1, the correlation difference of sample a is:<br><br>
+The difference of Average (correlation(a, b), correlation(a, c), correlation(a, d)) and Average (correlation(b, c), correlation (b, d), correlation(c, d)). You can see that if sample a is an outlier, then the difference will be negative.<br><br>
+(2) Now we have a vector of values (one for each sample). We simply convert this vector to MAD scores (robust Z-scores) by subtracting the medians then dividing it by median absolute deviations (MAD). We use a standard MAD cutoff (e.g. -5) to determine the outliers.</p>
+</div>
+
+<table border=0>
+<tr><td>
+Search: <input type="text" id="txtSearch" value="">
+</td><td>Right click on a column to show the explanation.</td></tr>
+</table>
+
+<div id="grid"></div>
+<div id="pager"></div>
+
+
+<script type="text/javascript">
+
+var color_set = d3.scale.linear().range(["#3182bd", "#f33"]);
+
+var parcoords = d3.parcoords()("#canvas1")
+	.alpha(0.4)
+	.mode("queue") // progressive rendering
+	.height(240)
+	.margin({
+		top: 36,
+		left: 0,
+		right: 0,
+		bottom: 16
+	});
+
+// load tsv file and create the chart
+
+var dataset = d3.select('#dataset').text().replace(/^\s+|\s+$/g, '');
+var data = d3.tsv.parse(dataset);
+
+
+data.forEach(function(d, i) {
+	d.id = d.id || i;
+});
+
+parcoords
+	.data(data)
+	.hideAxis(["id", "Avg_Corr", "Corr_diff"])
+	.render()
+	.margin({
+		top: 40,
+		right: 20,
+		bottom: 20,
+		left: 50
+	})
+	.reorderable()
+	.brushMode("1D-axes");
+
+// setting up grid
+var column_keys = d3.keys(data[0]);
+var columns = column_keys.map(function(key, i) {
+	return {
+		id: key,
+		name: key,
+		field: key,
+		sortable: true
+	}
+});
+
+
+// update_colors(d3.keys(data[0])[2]);
+
+// click label to activate coloring
+parcoords.svg.selectAll(".dimension")
+	.on("click", update_colors)
+	.selectAll(".label")
+	.style("font-size", "10px"); // change font sizes of selected label
+
+
+//add hover event
+d3.select("#canvas1 svg")
+	.on("click", function() {
+		var mousePosition = d3.mouse(this);
+		highlightLineOnClick(mousePosition, true); //true will also add tooltip
+	})
+	.on("mouseout", function() {
+		cleanTooltip();
+		parcoords.unhighlight();
+	});
+
+
+// update color and font weight of chart based on axis selection
+// modified from here: https://syntagmatic.github.io/parallel-coordinates/
+function update_colors(dimension) {
+
+console.log(dimension);
+
+	// change the fonts to bold
+	parcoords.svg.selectAll(".dimension")
+		.style("font-weight", "normal")
+		.filter(function(d) {
+			return d == dimension;
+		})
+		.style("font-weight", "bold");
+
+	// change color of lines
+	// set domain of color scale
+	var values0 = getActiveData().map(function(d) {
+		return d[dimension];
+	});
+	values = values0.map(function(d) {return parseFloat(d)});
+
+	if (isNaN(values[0])) {
+		var n = {},j=1,i;
+		for(i = 0; i < values0.length; i++) {
+			if (!n[values0[i]]) {
+				n[values0[i]] = j++; 
+			}
+		}
+		for(i = 0; i < values.length; i++) {
+			values[i] = n[values0[i]];
+		}
+	}
+
+	color_set.domain([d3.min(values), d3.max(values)]);
+
+	// change colors for each line
+//	parcoords.color(function(d) {
+//		return color_set([d[dimension]])
+//	}).render();
+
+	parcoords.color(function(d,i) {
+		return color_set(values[i])
+	}).render();
+};
+
+
+// Add highlight for every line on click
+function getCentroids(data) {
+	// this function returns centroid points for data. I had to change the source
+	// for parallelcoordinates and make compute_centroids public.
+	// I assume this should be already somewhere in graph and I don't need to recalculate it
+	// but I couldn't find it so I just wrote this for now
+	var margins = parcoords.margin();
+	var graphCentPts = [];
+
+	data.forEach(function(d) {
+
+		var initCenPts = parcoords.compute_centroids(d).filter(function(d, i) {
+			return i % 2 == 0;
+		});
+
+		// move points based on margins
+		var cenPts = initCenPts.map(function(d) {
+			return [d[0] + margins["left"], d[1] + margins["top"]];
+		});
+
+		graphCentPts.push(cenPts);
+	});
+
+	return graphCentPts;
+}
+
+function getActiveData() {
+	// I'm pretty sure this data is already somewhere in graph
+	if (parcoords.brushed() != false) return parcoords.brushed();
+	return parcoords.data();
+}
+
+function isOnLine(startPt, endPt, testPt, tol) {
+	// check if test point is close enough to a line
+	// between startPt and endPt. close enough means smaller than tolerance
+	var x0 = testPt[0];
+	var y0 = testPt[1];
+	var x1 = startPt[0];
+	var y1 = startPt[1];
+	var x2 = endPt[0];
+	var y2 = endPt[1];
+	var Dx = x2 - x1;
+	var Dy = y2 - y1;
+	var delta = Math.abs(Dy * x0 - Dx * y0 - x1 * y2 + x2 * y1) / Math.sqrt(Math.pow(Dx, 2) + Math.pow(Dy, 2));
+	//console.log(delta);
+	if (delta <= tol) return true;
+	return false;
+}
+
+function findAxes(testPt, cenPts) {
+	// finds between which two axis the mouse is
+	var x = testPt[0];
+	var y = testPt[1];
+
+	// make sure it is inside the range of x
+	if (cenPts[0][0] > x) return false;
+	if (cenPts[cenPts.length - 1][0] < x) return false;
+
+	// find between which segment the point is
+	for (var i = 0; i < cenPts.length; i++) {
+		if (cenPts[i][0] > x) return i;
+	}
+}
+
+function cleanTooltip() {
+	// removes any object under #tooltip is
+	parcoords.svg.selectAll("#tooltip")
+		.remove();
+}
+
+function addTooltip(clicked, clickedCenPts) {
+
+	// add tooltip to multiple clicked lines
+	var clickedDataSet = [];
+	var margins = parcoords.margin();
+	var dim = parcoords.dimensions();
+
+	// get all the values into a single list
+	// I'm pretty sure there is a better way to write this is Javascript
+	for (var i = 0; i < clicked.length; i++) {
+//console.log(clicked[i]);
+		for (var j = 0; j < clickedCenPts[i].length; j++) {
+// Baohong: fix the bug here, should match displaying axis
+//			var text = d3.values(clicked[i])[j];
+			var text = String(clicked[i][dim[j]]); // It must be String type
+			// not clean at all!
+			var x = clickedCenPts[i][j][0] - margins.left;
+			var y = clickedCenPts[i][j][1] - margins.top;
+			clickedDataSet.push([x, y, text]);
+		}
+	};
+
+
+	// add rectangles
+	var fontSize = 14;
+	var padding = 2;
+	var rectHeight = fontSize + 2 * padding; //based on font size
+
+	parcoords.svg.selectAll("rect[id='tooltip']")
+		.data(clickedDataSet).enter()
+		.append("rect")
+		.attr("x", function(d) {
+			return d[0] - d[2].length * 5;
+		})
+		.attr("y", function(d) {
+			return d[1] - rectHeight + 2 * padding;
+		})
+		.attr("rx", "2")
+		.attr("ry", "2")
+		.attr("id", "tooltip")
+		.attr("fill", "grey")
+		.attr("opacity", 0.9)
+		.attr("width", function(d) {
+			return d[2].length * 10;
+		})
+		.attr("height", rectHeight);
+
+	// add text on top of rectangle
+	parcoords.svg.selectAll("text[id='tooltip']")
+		.data(clickedDataSet).enter()
+		.append("text")
+		.attr("x", function(d) {
+			return d[0];
+		})
+		.attr("y", function(d) {
+			return d[1];
+		})
+		.attr("id", "tooltip")
+		.attr("fill", "white")
+		.attr("text-anchor", "middle")
+		.attr("font-size", fontSize)
+		.text(function(d) {
+			return d[2];
+		})
+}
+
+function getClickedLines(mouseClick) {
+	var clicked = [];
+	var clickedCenPts = [];
+
+	// find which data is activated right now
+	var activeData = getActiveData();
+
+	// find centriod points
+	var graphCentPts = getCentroids(activeData);
+
+	if (graphCentPts.length == 0) return false;
+
+	// find between which axes the point is
+	var axeNum = findAxes(mouseClick, graphCentPts[0]);
+	if (!axeNum) return false;
+
+	graphCentPts.forEach(function(d, i) {
+		if (isOnLine(d[axeNum - 1], d[axeNum], mouseClick, 2)) {
+			clicked.push(activeData[i]);
+			clickedCenPts.push(graphCentPts[i]); // for tooltip
+		}
+	});
+
+	return [clicked, clickedCenPts]
+}
+
+
+function highlightLineOnClick(mouseClick, drawTooltip) {
+
+	var clicked = [];
+	var clickedCenPts = [];
+
+	clickedData = getClickedLines(mouseClick);
+
+	if (clickedData && clickedData[0].length != 0) {
+
+		clicked = clickedData[0];
+		clickedCenPts = clickedData[1];
+
+		// highlight clicked line
+		parcoords.highlight(clicked);
+
+		if (drawTooltip) {
+			// clean if anything is there
+			cleanTooltip();
+			// add tooltip
+			addTooltip(clicked, clickedCenPts);
+		}
+
+	}
+}
+
+
+// SlickGrid
+var options = {
+	enableCellNavigation: true,
+	multiColumnSort: false
+};
+columns[0] = {
+	id: "Sample",
+	name: "Sample",
+	field: "Sample",
+	formatter: linkFormatter = function(row, cell, value, columnDef, dataContext) {
+		return '<a href=QC/' + value + '/' + value + '.qc.html target=_blank>' + value + '</a>';
+	}
+};
+
+var dataView = new Slick.Data.DataView();
+var grid = new Slick.Grid("#grid", dataView, columns, options);
+var pager = new Slick.Controls.Pager(dataView, grid, $("#pager"));
+
+// wire up model events to drive the grid
+dataView.onRowCountChanged.subscribe(function(e, args) {
+	grid.updateRowCount();
+	grid.render();
+});
+
+dataView.onRowsChanged.subscribe(function(e, args) {
+	grid.invalidateRows(args.rows);
+	grid.render();
+});
+
+
+// column sorting
+var sortcol = column_keys[0];
+var sortdir = 1;
+
+function comparer(a, b) {
+
+	// Baohong Zhang: fix to sort integer right
+	if (/^[\.|\d]*$/.test(a[sortcol]) && /^[\.|\d]*$/.test(b[sortcol])) {
+		a[sortcol] = parseFloat(a[sortcol], 10);
+		b[sortcol] = parseFloat(b[sortcol], 10);
+	}
+
+	var x = a[sortcol],
+		y = b[sortcol];
+	return (x == y ? 0 : (x > y ? 1 : -1));
+}
+
+// click header to sort grid column
+grid.onSort.subscribe(function(e, args) {
+	sortdir = args.sortAsc ? 1 : -1;
+	sortcol = args.sortCol.field;
+
+	dataView.sort(comparer, args.sortAsc);
+});
+
+// highlight row in chart
+// Baohong: Added Tooltip
+grid.onMouseEnter.subscribe(function(e, args) {
+//	var d = parcoords.brushed() || data;
+	var r = grid.getCellFromEvent(e).row;
+	var i = dataView.getIdxById(grid.getDataItem(r)["id"])  // Baohong: sorting changes data order
+
+	var d = data;
+	parcoords.highlight([d[i]]);
+	// clean if anything is there
+	cleanTooltip();
+	// add tooltip
+	addTooltip([d[i]], getCentroids([d[i]]));
+});
+
+grid.onMouseLeave.subscribe(function(e, args) {
+	parcoords.unhighlight();
+	cleanTooltip();
+});
+
+grid.onHeaderContextMenu.subscribe(function(e, args) {
+	e.preventDefault();
+	var theDialog = $("#dialog_"+args.column.id).dialog();
+	theDialog.dialog("option", "position", [e.pageX,e.pageY]);
+	theDialog.dialog("open");
+});
+
+grid.onClick.subscribe(function(e, args) {
+
+	// args.row - row of the clicked cell
+	// args.cell - column of the clicked cell
+});
+
+
+// update grid on brush
+parcoords.on("brush", function(d) {
+	gridUpdate(d);
+});
+
+
+var searchString = "";
+
+function myFilter(data, args) {
+	if (args.searchString != "" && data[columns[0].name].toUpperCase().indexOf(args.searchString.toUpperCase()) == -1 &&
+		data[columns[1].name].toUpperCase().indexOf(args.searchString.toUpperCase()) == -1 &&
+		data[columns[2].name].toUpperCase().indexOf(args.searchString.toUpperCase()) == -1 &&
+		data[columns[3].name].toUpperCase().indexOf(args.searchString.toUpperCase()) == -1) {
+		return false;
+	}
+	return true;
+}
+
+$("#txtSearch").keyup(function(e) {
+	Slick.GlobalEditorLock.cancelCurrentEdit();
+
+	// clear on Esc
+	if (e.which == 27) {
+		this.value = "";
+	}
+
+	searchString = this.value;
+	updateFilter();
+});
+
+function updateFilter() {
+	dataView.setFilterArgs({
+		searchString: searchString
+	});
+	dataView.refresh();
+}
+
+function gridUpdate(data) {
+	dataView.beginUpdate();
+	dataView.setItems(data);
+
+	dataView.setFilterArgs({
+		searchString: searchString
+	});
+
+	dataView.setFilter(myFilter);
+
+	dataView.endUpdate();
+};
+
+// fill grid with data
+gridUpdate(data);
+
+window.onload = function() {
+	if(!window.location.hash) {
+		window.location = window.location + '#loaded';
+		window.location.reload();
+	}
+}
+</script>
+
+</body>
+</html>

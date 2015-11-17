@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+################################################################################
+#
+# Master HTML portal page
+#
+#
+# Baohong Zhang
+#
+#
+# July. 2015
+#
+#################################################################################
+-->
+
+<html>
+<head>
+<title>QuickRNAseq: A Comprehensive, Integrated and Interactive RNA-seq Analysis Report</title>
+<link rel="stylesheet" type="text/css" href="package/Nozzle/css/nozzle.css" media="screen">
+<link rel="stylesheet" type="text/css" href="package/Nozzle/css/nozzle.print.css" media="print">
+<link rel="stylesheet" type="text/css" href="package/fancybox/jquery.fancybox-1.3.4.css" media="screen">
+<style type="text/css">
+.report .title {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font: bold x-large "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    color: #000;
+}
+.section .sectionheader {
+	font: bold large "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+}
+body {
+	background-color: #eee;
+}
+.section {
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+.section .sectionheader {
+    margin-top: 10px;
+}
+.sectionbody a {
+    color: #000077;
+}
+.report .main {
+# comment out the following line after screenshot
+#	overflow: visible;
+	margin-bottom: 8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div style="display: none" id="mask">&nbsp;</div>
+<script type="text/javascript">
+document.getElementById("mask").style.display = "block";
+</script>
+
+
+<script type="text/javascript" src="package/Nozzle/js/jquery-1.5.1.min.js"></script>
+<script type="text/javascript" src="package/Nozzle/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="package/fancybox/jquery.fancybox-1.3.4.pack.js"></script>
+
+<script type="text/javascript" src="package/Nozzle/js/nozzle.js"></script>
+<script type="text/javascript" src="package/Nozzle/js/nozzleMeta.js"></script>
+<script type="text/javascript">
+	$(document).ready( function() {
+		initNozzle( "r100", $ );
+		$("a#single_image").fancybox();
+		toggleContents( $( "#results_pp,#results_et"), false);
+});
+</script>
+
+<div class="report" id="r100">
+<div class="frame">
+<div class="main">
+
+<div class="title">QuickRNAseq: Integrated and Interactive RNA-seq Analysis Report</div>
+
+<!-- Overview -->
+<div class="section" id="overview_r100">
+<div class="sectionheader"> Overview </div>
+<div class="sectionbody">
+It provides the QC metrics and expression tables, including overall read mapping statistics, QC report for each sample, interactive gene expression visualization and analytical tools to gain insights about the data.  
+</div>
+</div>
+
+<!-- QC Metrics -->
+<div class="section" id="results_r100">
+<div class="sectionheader"> QC Metrics </div>
+<div class="sectionbody">
+
+<div class="figure" id="figures_r100">
+
+<table border=0 cellspacing=0 cellpadding=0>
+
+<tr>
+<td colspan=2>
+<a id="single_image" href="Summary/read_map_sum.10x7.png"><img src="Summary/read_map_sum.10x7.png" width=160 height=160/></a>
+</td>
+<td colspan=2>
+<a id="single_image" href="Summary/read_count_sum.10x7.png"><img src="Summary/read_count_sum.10x7.png" width=160 height=160/>
+</td>
+<td colspan=2>
+<a id="single_image" href="Summary/RNASeq-snp-corr.txt.corr.9x7.png"><img src="Summary/RNASeq-snp-corr.txt.corr.9x7.png" width=160 height=160/></a>
+</td>
+<td colspan=2>
+<a id="single_image" href="Summary/expr_count_RPKM.10x7.png"><img src="Summary/expr_count_RPKM.10x7.png" width=160 height=160/></a>
+</td>
+<td colspan=2>
+<a id="single_image" href="Summary/RNASeq-expr-corr.txt.corr.9x7.png"><img src="Summary/RNASeq-expr-corr.txt.corr.9x7.png" width=160 height=160/>
+</td>
+</tr>
+
+<tr>
+<td align=center><a href=qc_star-mapping-summary.html target=_blank><img src=package/img/interactive.png></a></td><td><a href=Summary/star-mapping-summary.txt target=_blank><p style="font-size:14px">Mapping Summary</p></a></td>
+<td align=center>&nbsp;<a href=qc_fc-counting-summary.html target=_blank><img src=package/img/interactive.png></a></td><td><a href=Summary/fc-counting-summary.txt target=_blank><p style="font-size:14px">Feature Counts</p></a></td>
+<td align=center>&nbsp;&nbsp;<a href=longitudinal.html target=_blank><img src=package/img/interactive.png></a></td><td><a href=Summary/RNASeq-snp-corr.txt target=_blank><p style="font-size:14px">SNP Correlation</p></a></td>
+<td align=center>&nbsp;&nbsp;<a href=qc_expr_count_RPKM.html target=_blank><img src=package/img/interactive.png></a></td><td><a href=Summary/expr_count_RPKM.txt target=_blank><p style="font-size:14px">Gene Expressed</p></a></td>
+<td align=center>&nbsp;</td><td><a href=Summary/RNASeq-expr-corr.txt target=_blank><p style="font-size:14px">Expression Correlation</p></a></td>
+</table>
+</div>
+
+</div>
+</div>
+
+<!-- Parallel Plot of QC -->
+<div class="section" id="results_pp">
+<div class="sectionheader"> Parallel Plot of QC </div>
+<div class="sectionbody">
+<a href="qc_overview.html" target=_blank><img src=package/img/parallelplot.png border=1 width=100%></a>
+Click on the image above to access the interactive plot.  
+<a class="download" href="Summary/RNASeq-merged-metrics.txt">Raw Data</a>
+
+</div>
+</div>
+
+<!-- Expression Tables -->
+<div class="section" id="results_et">
+<div class="sectionheader"> Expression Tables </div>
+<div class="sectionbody">
+<li><a href=Summary/Gene-count-table.txt>Raw Read Counts on Genes</a>
+<li><a href=Summary/Gene-fpkm-table.txt>RPKM Values on Genes</a> <a href=gex.html target=_blank><img src=package/img/interactive.png></a>
+
+</div>
+</div>
+
+<!-- Raw Data Files -->
+<div class="section">
+<div class="sectionheader"> Raw Data Files </div>
+<div class="sectionbody">
+<table>
+<tr><td><a href=Summary/sample.annotation.txt>sample.annotation.txt</a></td><td>sample annotation file</td></tr>
+<tr><td><a href=Summary/star-mapping-summary.txt>star-mapping-summary.txt</a></td><td>read mapping summary for STAR run</td></tr>
+<tr><td><a href=Summary/fc-counting-summary.txt>fc-counting-summary.txt</a></td><td>read counting summary for featureCounts run</td></tr>
+<tr><td><a href=Summary/RSeQC-read-distribution.txt>RSeQC-read-distribution.txt</a></td><td>The distribution of mapped reads along gene elements</td></tr>
+<tr><td><a href=Summary/Gene-count-table.txt>Gene-count-table.txt</a></td><td>counting table</td></tr>
+<tr><td><a href=Summary/Gene-count-table.flt.txt>Gene-count-table.flt.txt</a></td><td>filtered counting table. A gene is filtered if having 0 read in more than 50% samples</td></tr>
+<tr><td><a href=Summary/Gene-fpkm-table.txt>Gene-fpkm-table.txt</a></td><td>RPKM table, calculated from Gene-count-table.txt</td></tr>
+<tr><td><a href=Summary/Gene-fpkm-table.flt.txt>Gene-fpkm-table.flt.txt</a></td><td>filtered RPKM table, calculated from Gene-count-table.flt.txt</td></tr>
+<tr><td><a href=Summary/RNASeq-expr-QC.txt>RNASeq-expr-QC.txt</a></td><td>correlation based QC of expression profile</td></tr>
+<tr><td><a href=Summary/RNASeq-expr-corr.txt>RNASeq-expr-corr.txt</a></td><td>All-against-all gene expression correlation matrix</td></tr>
+<tr><td><a href=Summary/RNASeq-snp-corr.txt>RNASeq-snp-corr.txt</a></td><td>All-against-all SNP correlation matrix</td></tr>
+<tr><td><a href=Summary/RNASeq-merged-metrics.txt>RNASeq-merged-metrics.txt</a></td><td>Merged RNA-seq metrics from mapping, counting, distribution and QC</td></tr>
+<tr><td><a href=Summary/read_map_sum.10x7.png>read_map_sum.10x7.png</a></td><td>plot of star-mapping-summary.txt. Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/read_map_sum.png>read_map_sum.png</a></td><td>plot of star-mapping-summary.txt. Intended for interactive HTML presentation.</td></tr>
+<tr><td><a href=Summary/read_count_sum.10x7.png>read_count_sum.10x7.png</a></td><td>plot of fc-counting-summary.txt. Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/read_count_sum.png>read_count_sum.png</a></td><td>plot of fc-counting-summary.txt. Intended for interactive HTML presentation.</td></tr>
+<tr><td><a href=Summary/read_dist_sum.10x7.png>read_dist_sum.10x7.png</a></td><td>plot of RSeQC-read-distribution.txt. Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/read_dist_sum.png>read_dist_sum.png</a></td><td>plot of RSeQC-read-distribution.txt. Intended for interactive HTML presentation.</td></tr>
+<tr><td><a href=Summary/expr_count_RPKM.10x7.png>expr_count_RPKM.10x7.png</a></td><td>plot the number of genes with a give RPKM cutoff. Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/expr_count_RPKM.png>expr_count_RPKM.png</a></td><td>plot the number of genes with a give RPKM cutoff. Intended for interactive HTML presentation.</td></tr>
+<tr><td><a href=Summary/RNASeq-expr-corr.txt.corr.9x7.png>RNASeq-expr-corr.txt.corr.9x7.png</a></td><td>correlation plot for RNASeq-expr-corr.txt.Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/RNASeq-expr-corr.txt.corr.png>RNASeq-expr-corr.txt.corr.png</a></td><td>correlation plot for RNASeq-expr-corr.txt.Intended for interactive HTML presentation.</td></tr>
+<tr><td><a href=Summary/RNASeq-snp-corr.txt.corr.9x7.png>RNASeq-snp-corr.txt.corr.9x7.png</a></td><td>correlation plot for RNASeq-snp-corr.txt.Intended for powerpoint presentation.</td></tr>
+<tr><td><a href=Summary/RNASeq-snp-corr.txt.corr.png>RNASeq-snp-corr.txt.corr.png</a></td><td>correlation plot for RNASeq-snp-corr.txt</td></tr>
+</table>
+</div>
+</div>
+
+
+<!-- Reference -->
+<div class="section" id="references_r100">
+<div class="sectionheader"> References </div>
+<div class="sectionbody">
+
+<div class="reference" id="reference_1_r100">
+[1] Nils Gehlenborg, <a href="https://github.com/parklab/Nozzle">Nozzle.R1 Package</a> (2013)
+</div>
+<div class="reference" id="reference_2_r100">
+[2] <a href="http://rseqc.sourceforge.net/">RSeQC: An RNA-seq Quality Control Package</a>
+</div>
+<div class="reference" id="reference_3_r100">
+[3] <a href="http://bioinformatics.oxfordjournals.org/content/29/8/1089">N Gehlenborg, MS Noble, G Getz, L Chin and PJ Park, "Nozzle: a report generation toolkit for data analysis pipelines", Bioinformatics 29:1089-1091 (2013)</a>
+</div>
+<div class="reference" id="reference_4_r100">
+[4] <a href="http://d3js.org/">D3.js - Data-Driven Documents</a>
+</div>
+
+</div>
+</div>
+
+
+<!-- Credits -->
+<div class="maintainer">
+<script>document.write("Maintained by <span class=name><a href=mailto:"+nozzleMeta.maintainer.email+">"+nozzleMeta.maintainer.name+"</a></span>");</script>
+</div>
+
+<div class="credits">
+<span class="notice">
+<a href="http://www.github.com/parklab/Nozzle">Made with Nozzle</a>
+</span>
+</div>
+
+
+</div> <!-- main -->
+</div> <!-- frame -->
+</div> <!-- report -->
+</body>
+</html>
