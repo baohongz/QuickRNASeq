@@ -454,12 +454,85 @@ Step 7: Move mouse up to the top of the canvas to activate the top menu, clicak 
 </div>
 </div> <!-- subsection -->
 
+</div>
+</div>
 
+
+<div class="section">
+<div class="sectionheader">How to make the report publically available at github.com</div>
+<div class="sectionbody">
+
+<div class="subsection">
+<div class="sectionheader">Create a repo by login github.com</div>
+<div class="sectionbody">
+<div class="code">
+<pre>
+The following open source should be downloaded and installed
+    1. download STAR from https://github.com/alexdobin/STAR/releases
+    2. install SUBREAD packages http://subread.sourceforge.net/
+    3. download JAR file from http://varscan.sourceforge.net/
+    4. download and install RSeQC from http://rseqc.sourceforge.net/
+    5. download and install samtools from http://sourceforge.net/projects/samtools/files/
+
+To set the following software related parameters in configuration file. samtools is assumed
+to be in your system path since it is a basic utility tool for NGS data analysis.
+        STAR_RNA=/hpc/grid/shared/ngsapp/STAR_2.4.0k/bin/Linux_x86_64
+        FEATURECOUNTS=/hpc/grid/shared/ngsapp/subread-1.4.6/bin
+        RSeQC=/afs/grid.pfizer.com/mm/proj01/app/python/bin
+        VARSCAN_JAR=/hpc/grid/shared/ngsapp/bin/VarScan.v2.4.0.jar
+
+#
+## preparation geneome/annotation/index for RNA-seq data analysis
+#
+An example on how to create GRCh38_Gencode23 index for RNA-seq data analysis step by step
+  a. download genome Fastq ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_23/GRCh38.primary_assembly.genome.fa.gz
+  b. download gene annotation in GTF: ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_23/gencode.v23.annotation.gtf.gz
+  c. unzip and rename genome and GTF as: GRCh38.primary.genome.fa, GRCh38.gencode.v23.gtf and
+      put them in the corresponding project data folder
+  d.  prepare annotation and BED files using utility functions in QuickRNASeq
+      1).  gtf2bed.pl  GRCh38.gencode.v23.gtf >  GRCh38.gencode.v23.bed
+      2).  gtf2annot.pl GRCh38.gencode.v23.gtf > GRCh38.gencode.v23.annot
+      3).  samtools faidx GRCh38.primary.genome.fa
+  f.  create genome index as below:
+       /hpc/grid/shared/ngsapp/STAR_2.4.0k/bin/Linux_x86_64/STAR \
+          --runThreadN 32 --runMode genomeGenerate --genomeDir /hpc/grid/shared/ngsdb/STAR/GRCh38_gencode23_100 \
+          --genomeFastaFiles  /hpc/grid/shared/ngsdb/fasta/GRCh38.primary.genome.fa --sjdbGTFfile \
+          /hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.gtf --sjdbOverhang 99
+  g.  To set the following reference geneome related parameters in configuration file
+      GENOME_FASTA=/hpc/grid/shared/ngsdb/fasta/GRCh38.primary.genome.fa
+      GENOME_INDEX=/hpc/grid/shared/ngsdb/STAR/GRCh38_gencode23_100
+      GENOME_ANNOTATION=/hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.annot
+      GTF_FILE=/hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.gtf
+      BEDFILE=/hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.bed
+      CHR_REGION=chr6:1-170805979
+</pre>
+</div>
+
+</div>
+</div> <!-- subsection -->
+
+<div class="subsection">
+<div class="sectionheader">Create a repo by login github.com</div>
+<div class="sectionbody">
+<div class="code">
+<pre>
+ git clone https://github.com/baohongz/test.git
+ cd test
+ git checkout --orphan gh-pages
+ vi index.html
+
+ git add .
+ git commit -a -m "Adding index.html"
+ git push origin gh-pages
+</pre>
+</div>
+
+</div>
+</div> <!-- subsection -->
 
 
 </div>
 </div>
-
 
 <!-- Credits -->
 <div class="maintainer">
