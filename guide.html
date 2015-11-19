@@ -477,19 +477,20 @@ Step 2: Type in project name sunce as RNASeq_1 and description and then click "C
 </div> <!-- subsection -->
 
 <div class="subsection">
-<div class="sectionheader">Create a repo by login github.com</div>
+<div class="sectionheader">Commands to add the report files to github repository</div>
 <div class="sectionbody">
 <div class="code">
 <pre>
  git clone https://github.com/username/RNASeq_1.git
  cd RNASeq_1
  git checkout --orphan gh-pages
- cp -R Results/* .
+ cp -R path2result/Results/* .
 
  git add .
  git commit -a -m "Adding index.html"
  git push origin gh-pages
 </pre>
+Now, the report is available at http://username.github.io/RNASeq_1 .
 </div>
 
 </div>
