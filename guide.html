@@ -146,6 +146,14 @@ An example on how to create GRCh38_Gencode23 index for RNA-seq data analysis ste
 </div> <!-- subsection -->
 
 <div class="subsection">
+<div class="sectionheader">Download QuickRNASeq package</div>
+<div class="sectionbody">
+
+<a href=https://sourceforge.net/projects/quickrnaseq>https://sourceforge.net/projects/quickrnaseq</a>
+
+</div>
+</div> <!-- subsection -->
+<div class="subsection">
 <div class="sectionheader">Prepare RNA-seq data</div>
 <div class="sectionbody">
 
@@ -465,7 +473,7 @@ Step 7: Move mouse up to the top of the canvas to activate the top menu, clicak 
 <div class="subsection">
 <div class="sectionheader">Create a repository by login github.com</div>
 <div class="sectionbody">
-<font color=red>NOTE: if you don't have a github account, create one first by click the <a href=https://github.com/join>link</a>.</font>
+<font color=red>NOTE: if you don't have a github account, create one first by clicking the <a href=https://github.com/join>link</a>.</font>
 <p>
 <br>
 Step 1: Click on the "New repository" icon.<br>
@@ -480,12 +488,14 @@ Step 2: Type in project name such as RNASeq_1 and description and then click "Cr
 <div class="subsection">
 <div class="sectionheader">Commands to add the report files to github repository</div>
 <div class="sectionbody">
+Text in <font color=red>red</font> need to be replaced by your own settings.
+<p>
 <div class="code">
 <pre>
- git clone https://github.com/username/RNASeq_1.git
- cd RNASeq_1
+ git clone https://github.com/<font color=red>username/RNASeq_1</font>.git
+ cd <font color=red>RNASeq_1</font>
  git checkout --orphan gh-pages
- cp -R path2result/Results/* .
+ cp -R <font color=red>path2result</font>/Results/* .
 
  git add .
  git commit -a -m "Adding index.html"
@@ -494,7 +504,7 @@ Step 2: Type in project name such as RNASeq_1 and description and then click "Cr
 </div>
 <br>
 <br>
-Now, the report is available at http://username.github.io/RNASeq_1 .
+Now, the report is available at http://<font color=red>username</font>.github.io/<font color=red>RNASeq_1</font> .
 
 </div>
 </div> <!-- subsection -->
