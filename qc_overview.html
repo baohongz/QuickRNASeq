@@ -546,8 +546,8 @@ var sortdir = 1;
 
 function comparer(a, b) {
 
-	// Baohong Zhang: fix to sort integer right
-	if (/^[\.|\d]*$/.test(a[sortcol]) && /^[\.|\d]*$/.test(b[sortcol])) {
+    // Baohong Zhang: fix to sort numberic values
+    if ($.isNumeric(a[sortcol]) && $.isNumeric(b[sortcol])) {
 		a[sortcol] = parseFloat(a[sortcol], 10);
 		b[sortcol] = parseFloat(b[sortcol], 10);
 	}
