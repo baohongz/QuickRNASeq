@@ -233,6 +233,19 @@ GTF_FILE=/hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.gtf
 BEDFILE=/hpc/grid/shared/ngsdb/annotation/gencode/GRCh38.gencode.v23.bed
 CHR_REGION=chr6:1-170805979
 
+#######################################################################
+#
+##Software specific parameters
+##Usually, you DON'T need to modify them unless you understand the 
+##impacts of these parameters
+#
+#######################################################################
+
+STAR_PARAMETER="--alignSJDBoverhangMin 1 $limitBAMsortRAM --outFilterMismatchNoverLmax 0.05 --outFilterScoreMinOverLread 0.90 --outFilterMatchNminOverLread 0.90 --alignIntronMax 1000000"
+FEATURECOUNTS_OVERLAP="--minReadOverlap 25"
+VARSCAN_PARAMETER="--min-coverage 20 --min-reads2 4"
+
+
 #
 ##Software locations
 ## Usually, you DON'T need to modify them unless you update packages
