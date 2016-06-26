@@ -3,6 +3,7 @@
 // directly from that site yourself or make/choose your own icons
 
 // the text legned feature requires the Ext.ux.CheckColumn.js (CheckColumn.js in Extjs package)
+// Network analysis feature requires Ext.data.PagingMemoryProxy.js, Ext.ux.grid.GridFilters
 function notImplemented() { Ext.Msg.alert('Error', 'Not implemented') }
 Ext.canvasXpress = Ext.extend(Ext.Panel, {
   data: false,
@@ -12,6 +13,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
   layout: 'fit',
   contextMenu: true,
   menuTitle: 'Customize',
+  saveAllStr: 'Save All Unsaved Changes Now',
   showPrint: true,
   showToolbar: true,
   changedNodes: [],
@@ -122,10 +124,10 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
           },
           {
             icon: this.imgDir + 'save.png',
-            tooltip: 'Save the Entire Network and Reload It (could be slow!)',
+            tooltip: this.saveAllStr,
             disabled: true,
             scope: this,
-            handler: this.saveMap
+            handler: this.saveMap.createDelegate(this, [])
           },
           {
             icon: this.imgDir + 'turn_left.png',
@@ -411,11 +413,11 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
     {
       var tmp = this.canvas.networkFreeze;
       this.canvas.networkFreeze = false;
-      this.canvas.setDimensions(aw - 7 * 2, ah - 7 - 35); // these are hard-coded middle-container and north-container etc w/h
+      this.canvas.setDimensions(aw + 4, ah - 24); // these are hard-coded middle-container and north-container etc w/h
       this.canvas.networkFreeze = tmp;
     }
     else
-      this.canvas.setDimensions(aw - 7 * 2, ah - 7 - 35); // these are hard-coded middle-container and north-container etc w/h
+      this.canvas.setDimensions(aw+ 4, ah + 4); // - 24 seems too much for non-network panels
   },
   showTiles: function() {
     var perrow = this.stackViewObj.perRow || 2, html = ['<html><head><style>td { text-align:center; }</style></head><body><h3>' + this.stackViewObj.stackViews[0][0] + '</h3>\n<table>'], w = Math.floor((window.innerWidth-15) / perrow) - 10;
@@ -432,7 +434,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
     window.open().document.write(html.join('\n') + '</tr>\n</table>\n</body></html>');
   },
   toggleSaveNetworkBtn: function() {
-    this.toggleToolbarBtn({text:'Save All Changes and Reload the Network',
+    this.toggleToolbarBtn({text:this.saveAllStr,
       toggle: !this.viewInfo && this.hasUnsavedChanges() && this.hasListener('saveallchanges')? 1 : 2});
   },
   toggleToolbarBtn: function(obj) {
@@ -466,8 +468,8 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
   afterRender: function() {
     Ext.canvasXpress.superclass.afterRender.apply(this, arguments);
     // To cope with the remote services divs we resize the canvas
-    var dw = this.options.decreaseWidth || 0;
-    var dh = this.options.decreaseHeight || 0;
+    var dw = (this.options.decreaseWidth || 0) - 18;
+    var dh = (this.options.decreaseHeight || 0) - 18;
     var pw = this.el.dom.parentNode ? this.el.dom.parentNode.clientWidth - dw : 500;
     var ph = this.el.dom.parentNode ? this.el.dom.parentNode.clientHeight - dh: 500;
     // Add the canvas tag
@@ -520,7 +522,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
         found = true;
         break;
       }
-    if(!found) ss.unshift('custom');
+    if(!found) ss.push('custom');
 
     if (this.canvas.version < 2) {
       var msg = 'Please download a newer version of canvasXpress at:<br>';
@@ -1145,6 +1147,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
                 this.fireEvent('updateedge', e, p, function(){}, true);
               }
             });
+          this.tagging(e, items, tagn, s);
           items.push({
             text: 'JSON for this edge',
             menu: eitem
@@ -1244,7 +1247,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
           items.push({
             icon: this.imgDir + 'copy.png',
             text: 'Copy All Nodes & Edges',
-            handler: func.createDelegate(this, [this.data.nodes])
+            handler: func.createDelegate(this, [this.canvas.data.nodes])
           });
           var f = function(clean) {
             var s = this.clipboard.obj.bounds, n = this.clipboard.obj.nodes,
@@ -1373,20 +1376,29 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
         if(tags.length)
         {
           var showtag = function(hide) {
-            var ns = [];
+            var ns = [], es = {};
             for(var name in tagn)
             {
-              var tag = tagn[name], n = tag.nodes;
+              var tag = tagn[name], n = tag.nodes, e = tag.edges;
               tag.show = !hide;
-              for(var i in n) ns.push(i);
+              if(n) for(var i in n) ns.push(i);
+              if(e)
+                for(var id1 in e)
+                {
+                  if(!es[id1]) es[id1] = {};
+                  var tmp = e[id1];
+                  for(var id2 in tmp)
+                    es[id1][id2] = 1;
+                }
             }
             this.canvas.hideUnhideNodes(ns, hide);
+            this.hideUnhideEdges(es, hide);
             this.canvas.draw();
           }, shm = [{
-            text: 'Show All',
+            text: 'Show All Tagged',
             handler: showtag.createDelegate(this, [false])
           }, {
-            text: 'Hide All',
+            text: 'Hide All Tagged',
             handler: showtag.createDelegate(this, [true])
           }], tnm = [], anm = [], fnm = [], tmenu = [];
           for(var i = 0; i < tags.length; i++)
@@ -1398,27 +1410,67 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               checked: !!tagn[j].show,
               scope: this,
               handler: function(b) {
-                var tag = tagn[b.text], n = tag.nodes, ns = [];
+                var tag = tagn[b.text], n = tag.nodes, ns = [], e = tag.edges, es = {};
                 tag.show = !b.checked;
-                for(var i in n)
+                if(n)
                 {
-                  var notshown = true;
-                  if(b.checked)
+                  for(var i in n)
                   {
-                    for(var j in tagn)
+                    var notshown = true;
+                    if(b.checked)
                     {
-                      if(j == b.text) continue;
-                      if(tagn[j].nodes[i] && tagn[j].show) // check if this node belongs to other tags that are currently showing
+                      for(var j in tagn)
                       {
-                        notshown = false;
-                        break;
+                        if(j == b.text) continue;
+                        if(tagn[j].show)
+                        {
+                          var tmp = tagn[j].nodes;
+                          if(tmp && tmp[i]) // check if this node belongs to other tags that are currently showing
+                          {
+                            notshown = false;
+                            break;
+                          }
+                        }
                       }
                     }
+                    if(notshown)
+                      ns.push(i);
                   }
-                  if(notshown)
-                    ns.push(i);
+                }
+                if(e)
+                {
+                  for(var id1 in e)
+                  {
+                    var tmp = e[id1];
+                    for(var id2 in tmp)
+                    {
+                      var notshown = true;
+                      if(b.checked)
+                      {
+                        for(var j in tagn)
+                        {
+                          if(j == b.text) continue;
+                          if(tagn[j].show)
+                          {
+                            var tmp = tagn[j].edges;
+                            if(tmp && tmp[id1] && tmp[id1][id2]) // check if this edge belongs to other tags that are currently showing
+                            {
+                              notshown = false;
+                              break;
+                            }
+                          }
+                        }
+                      }
+                    }
+                    if(notshown)
+                    {
+                      if(!es[id1]) es[id1] = {};
+                      es[id1][id2] = 1;
+                    }
+                  }
                 }
                 this.canvas.hideUnhideNodes(ns, b.checked);
+                this.hideUnhideEdges(es, b.checked);
                 this.canvas.draw();
 //                 this.tagChanged = true; // right now we always show all tagged nodes at network first load, so don't set tagChanged to true here for show/hide operations
                 b.setChecked(tag.show);
@@ -1433,10 +1485,13 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               handler: function(b) {
                 if(b.checked) return false;
                 var n = tagn[b.text].nodes, ns = [];
-                for(var i in n) ns.push(i);
-                this.canvas.setSelectNodes(ns);
-                this.canvas.draw();
-                b.setChecked(true);
+                if(n)
+                {
+                  for(var i in n) ns.push(i);
+                  this.canvas.setSelectNodes(ns);
+                  this.canvas.draw();
+                  b.setChecked(true);
+                }
                 return false;
               }
             });
@@ -1447,11 +1502,14 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               handler: function(b) {
                 if(b.checked) return false;
                 var n = tagn[b.text].nodes, ns = [];
-                for(var i in n) ns.push(i);
-                for(var i in this.canvas.selectNode) ns.push(i);
-                this.canvas.setSelectNodes(ns);
-                this.canvas.draw();
-                b.setChecked(true);
+                if(n)
+                {
+                  for(var i in n) ns.push(i);
+                  for(var i in this.canvas.selectNode) ns.push(i);
+                  this.canvas.setSelectNodes(ns);
+                  this.canvas.draw();
+                  b.setChecked(true);
+                }
                 return false;
               }
             });
@@ -1462,24 +1520,27 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               group: 'fnm',
               handler: function(b) {
                 var n = tagn[b.text].nodes, ns = [];
-                for(var i in n) ns.push(i);
-                this.canvas.flashNode(ns);
-                b.setChecked(true);
-                return false;
+                if(n)
+                {
+                  for(var i in n) ns.push(i);
+                  this.canvas.flashNode(ns);
+                  b.setChecked(true);
+                  return false;
+                }
               }
             });
           }
           tmenu.push({
-              text: 'Flash those tagged',
-              menu: fnm
-            }, {
-              text: 'Select those tagged',
-              menu: tnm
-            }, {
-              text: 'Add to selection those tagged',
-              menu: anm
-            }, {
-            text: 'Show/hide the nodes tagged',
+            text: 'Flash the nodes tagged as',
+            menu: fnm
+          }, {
+            text: 'Select the nodes tagged as',
+            menu: tnm
+          }, {
+            text: 'Add selection to the tag',
+            menu: anm
+          }, {
+            text: 'Show/hide those tagged as',
             scope: this,
             menu: shm
           });
@@ -1501,6 +1562,22 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
             text: 'Save as A New Network',
             icon: this.imgDir + 'add.png',
             handler: this.editNetwork.createDelegate(this, [true])
+          }, {
+            text: 'Network Analysis',
+            menu: [
+              {
+                text: 'Network Statistics',
+                scope: this,
+                handler: this.networkStats
+              }, {
+                text: 'Nodes Grid',
+                handler: this.nodeGrid.createDelegate(this, [])
+              }, {
+                text: 'Edges Grid',
+                scope: this,
+                handler: this.edgeGrid.createDelegate(this, [])
+              }
+            ]
           });
           if(this.networkInfo.id && !this.viewInfo)
             items.push({
@@ -1511,10 +1588,17 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
             });
           if(!this.viewInfo && this.hasUnsavedChanges() && this.hasListener('saveallchanges'))
             items.push({
-              text: 'Save the Network Now',
+              text: this.saveAllStr,
               icon: this.imgDir + 'save.png',
               scope: this,
-              handler: this.saveMap
+              handler: this.saveMap.createDelegate(this, [])
+            });
+          if(this.hasListener('saveallchanges') && this.allowForceSaveNetwork)
+            items.push({
+              text: 'Force Save the ENTIRE Network',
+              icon: this.imgDir + 'save.png',
+              scope: this,
+              handler: this.saveMap.createDelegate(this, [1])
             });
         }
         items.push('-',
@@ -1590,7 +1674,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               text: 'Force Save the Entire Network',
               icon: this.imgDir + 'save.png',
               scope: this,
-              handler: this.saveMap.createDelegate(this, [1], false)
+              handler: this.saveMap.createDelegate(this, [1])
             });
           var eitem = [{
             text: 'View/edit all legends',
@@ -1638,26 +1722,475 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
 //         }, '-');
     }
   },
+  hideUnhideEdges: function(es, hide) { // es = {nid1:{nid2:1...}...}
+    if(es)
+    {
+      var ce = this.canvas.data.edges;
+      for(var i = 0; i < ce.length; i++)
+      {
+        var te = ce[i];
+        if(es[te.id1] && es[te.id1][te.id2])
+          te.hide = hide;
+      }
+    }
+  },
+  networkStats: function() {
+    // # of nodes, edges, distribution graph of degrees
+    var nodes = {}, es = this.canvas.data.edges, eslen = es.length, ns = this.canvas.data.nodes, nslen = ns.length, ts = {};
+    for(var i = 0; i < nslen; i++)
+    {
+      var n = ns[i], type = n.type|| (n.data?n.data.type:'') ||'';
+      nodes[n.id] = {label:n.label,type:type,degree:0,exclude:n.anchor||n.eventless,node:n}
+      ts[type] = 1 + (ts[type]||0);
+    }
+    for(var i = 0; i < eslen; i++)
+    {
+      var e = es[i];
+      nodes[e.id1].degree++;
+      nodes[e.id2].degree++;
+    }
+    var degrees = {};
+    for(var i in nodes)
+    {
+      var n = nodes[i];
+      var t = degrees[n.degree] || {cnt:0, all:[]};
+      t.cnt++;
+      t.all.push(n.node);
+      degrees[n.degree] = t;
+    }
+    var typestr = '', types = [], t1 = [];
+    for(var i in ts)
+      types.push([i, ts[i]]);
+    if(types.length)
+    {
+      types.sort(function(a,b){return b[1]-a[1]});
+      for(var i = 0; i < types.length; i++)
+        t1.push(types[i][0] + ': ' + types[i][1]);
+      typestr = t1.join('<br>');
+    }
+    var gdata = [], vars = [];
+    for(var i in degrees)
+    {
+      if(i-0 == 0) continue;
+      vars.push('Node' + i);
+      gdata.push([i-0, degrees[i].cnt/nslen]);
+    }
+    var win = new Ext.Window({
+      width:450,
+      height:450,
+      title:'Network Statistics',
+      layout:'fit',
+      items: {
+        xtype: 'tabpanel',
+        activeItem: 0,
+        items: [{
+          title: 'Summary',
+          border: false,
+          style: 'padding:10px;',
+          html: '<div style="font-size:12px"># of Nodes: ' + nslen + '<br># of Edges: ' + eslen + '<br><br><b>Types of Nodes</b>:<br>' + typestr + '</div>'
+        }, {
+          xtype: 'canvasxpress',
+          id: Ext.id(),
+          title: 'Degrees',
+          xlsExportFn: this.xlsExportFn,
+          data: {
+            "y": {
+              "vars": vars,
+              "smps": [ 'Degrees', 'Node Fraction' ],
+              "desc": [ "Node Fraction vs. Node Degrees" ],
+              "data": gdata
+            }
+          },
+          options: {
+            "graphType": "Scatter2D",
+            "useFlashIE": true,
+            "isLogData": true,
+            "xAxisTransformTicks": false,
+            "xAxisTransform": "log10",
+            "yAxisTransformTicks": false,
+            "yAxisTransform": "log10",
+            "selectedBackgroundColor": "rgb(51,255,173)",
+            "infoTimeOut": 30000,
+            "resizable": false,
+            "broadcast": false,
+            "helpKeyEvents": false
+          },
+          cxpevents: {
+            click: function(o) {
+              if(o && o.y && o.y.data && o.y.data.length)
+                this.nodeGrid(degrees[o.y.data[0][0]].all);
+            }.createDelegate(this),
+            select: function(o) {}
+          }
+        }]
+      }
+    });
+    win.show();
+  },
+  guessType: function(data) { // copied/simplified from BMS.DataTable.js
+    if(!data || !data.length) return;
+    var type = {};
+    for(var i = 0; i < data.length; i++)
+    {
+      if(i > 10) break; // just check first 10 rows
+      var row = data[i];
+      for(var j = 0; j < row.length; j++)
+      {
+        var v = row[j], tmp;
+        if(type[j] == 'string' || !v) continue;
+        if(/^\d{1,2}\D\d{1,2}\D\d{2,4}$/.test(v))
+          tmp = 'date';
+        else if(Ext.isNumber(v) || /^[€£¥$]|^\s*[+-]?\s*[0-9,.]+(?:\s*[eE]\s*[+-]?\s*\d+)?\s*$/.test(v))
+          tmp = 'numeric';
+        type[j] = tmp || 'string';
+      }
+    }
+    for(var j = 0; j < data[0].length; j++)
+      if(!type[j]) type[j] == 'string';
+    return type;
+  },
+  nodeGrid: function(ns) { // display with paging grid
+    // first calculate degrees for each node
+    var title = 'Degrees of ' + (ns? 'Selected' : 'Network') + ' Nodes';
+    ns = ns || this.canvas.data.nodes;
+    var nodes = {}, es = this.canvas.data.edges, eslen = es.length, nslen = ns.length, data = [], all = [];
+    var exclude = ['x','y','z','width','height','hideLabel','outline','labelSize','outlineWidth','imagePath','eventless','fixed','anchor','pattern','parent','center','rotate','hideName','tooltip','size','shape','labelXi','labelYi','labelZi','id','data','color'], exc = {}, cols = -1;
+    for(var i = 0; i < exclude.length; i++)
+      exc[exclude[i]] = 1;
+    for(var i = 0; i < nslen; i++)
+    {
+      var n = ns[i];
+      if(cols == -1)
+      {
+        cols = [];
+        for(var j in n)
+          if(!exc[j] && j.toLowerCase() != 'degree')
+            cols.push(j);
+      }
+      nodes[n.id] = {id:n.id,degree:0,exclude:n.anchor||n.eventless}; // fixed is OK
+      for(var j = 0; j < cols.length; j++)
+      {
+        var name = cols[j];
+        nodes[n.id][name] = n[name];
+      }
+    }
+    for(var i = 0; i < eslen; i++)
+    {
+      var e = es[i];
+      if(nodes[e.id1]) nodes[e.id1].degree++;
+      if(nodes[e.id2]) nodes[e.id2].degree++;
+    }
+    var titles = cols.concat(['degree']);
+    for(var i in nodes)
+    {
+      var n = nodes[i], tmp = [n.id], tmp1 = [];
+      for(var j = 0; j < titles.length; j++)
+      {
+        var v = n[titles[j]];
+        tmp.push(v);
+        tmp1.push(v);
+      }
+      data.push(tmp);
+      all.push(tmp1);
+    }
+    // create the Data Store
+    var fields = ['id'], columns = [];
+    for(var j = 0; j < titles.length; j++)
+    {
+      var v = titles[j];
+      if(v == 'degree') fields.push({name:v, type:'int'});
+      else fields.push(v);
+      columns.push({
+        header: v,
+        dataIndex: v,
+//         width: 100,
+        sortable: true,
+        filterable: true,
+        flex: 1,
+        minWidth: 30
+      });
+    }
+    var ftypes = this.guessType(all), allfilters = []; // colidx => type
+    for(var i = 0; i < cols.length; i++)
+    {
+      allfilters.push({
+        type: ftypes[i],
+        dataIndex: cols[i]
+      });
+    }
+    allfilters.push({
+      type: 'numeric',
+      dataIndex: 'degree'
+    });
+    var filters = new Ext.ux.grid.GridFilters({
+      local: false,
+      encode: true,
+      filters: allfilters
+    });
+    var store = new Ext.data.ArrayStore({
+      fields: fields,
+      sortInfo: {
+        field: 'degree',
+        direction: 'DESC'
+      },
+      proxy: new Ext.data.PagingMemoryProxy(data),
+      remoteSort: true
+    });
+    store.load({params:{start:0, limit:20}});
+    var win = new Ext.Window({
+      width:450,
+      height:510,
+      title:title,
+      layout:'fit',
+      items: {
+        xtype: 'grid',
+        store: store,
+        plugins: [filters],
+        trackMouseOver:false,
+        columns: columns,
+        sm: new Ext.grid.RowSelectionModel({
+          singleSelect:true,
+          listeners: {
+            scope: this,
+            rowselect: function(sm, idx, r) {
+              this.canvas.highlightNode = [r.data.id];
+              this.canvas.draw();
+            }
+          }
+        }),
+        listeners: {
+          scope: this,
+          rowdblclick: function(g, idx, e) {
+            rows = g.getSelectionModel().getSelections();
+            if(rows && rows.length)
+              this.canvas.flashNode(rows[0].data.id);
+          }
+        },
+        viewConfig: {
+          autoFill: true
+        },
+        bbar: new Ext.PagingToolbar({
+          pageSize: 20,
+          plugins: [filters],
+          store: store,
+          displayInfo: true,
+          displayMsg: 'Displaying nodes {0} - {1} of {2}',
+          emptyMsg: "No nodes to display",
+          items:[
+            '-', {
+            icon: this.imgDir + 'save.png',
+            scope: this,
+            tooltip: 'Export to Excel',
+            handler: function() {
+              var arr = store.proxy.currentRec, xls = [titles];
+              for(var i = 0; i < arr.length; i++)
+                xls.push(arr[i].json.slice(1));
+              if(this.xlsExportFn)
+                this.xlsExportFn(xls, 'networknodes');
+              else this.canvas.exportToExcel(xls);
+            }
+          }]
+        })
+      }
+    });
+    win.show();
+  },
+  edgeGrid: function(es) {
+    // first calculate degrees for each node
+    var title = 'Degrees of ' + (es? 'Selected' : 'Network') + ' Edges';
+    es = es || this.canvas.data.edges;
+    var nodes = {}, ns = this.canvas.data.nodes, eslen = es.length, nslen = ns.length, data = [], all = [];
+    var exclude = ['type','id1','id2','width','hideTooltip','tooltip','color','linetype','data','note'], exc = {}, cols = -1;
+    for(var i = 0; i < exclude.length; i++)
+      exc[exclude[i]] = 1;
+    for(var i = 0; i < nslen; i++)
+    {
+      var n = ns[i];
+      nodes[n.id] = n.label;
+    }
+    for(var i = 0; i < eslen; i++)
+    {
+      var e = es[i];
+      if(cols == -1)
+      {
+        cols = [];
+        for(var j in e)
+          if(!exc[j] && j.toLowerCase() != 'degree')
+            cols.push(j);
+      }
+      var tmp1 = [nodes[e.id1],nodes[e.id2]], tmp = [e.id1,e.id2].concat(tmp1);
+      for(var j = 0; j < cols.length; j++)
+      {
+        var v = e[cols[j]];
+        tmp.push(v);
+        tmp1.push(v);
+      }
+      data.push(tmp);
+      all.push(tmp1);
+    }
+    // create the Data Store
+    var fields = ['id1','id2','label1','label2'], columns = [{
+      header: 'FromNode',
+      dataIndex: 'label1',
+      sortable: true,
+      filterable: true,
+      flex: 1,
+      minWidth: 30
+    }, {
+      header: 'ToNode',
+      dataIndex: 'label2',
+      sortable: true,
+      filterable: true,
+      flex: 1,
+      minWidth: 30
+    }];
+    for(var j = 0; j < cols.length; j++)
+    {
+      var v = cols[j];
+      fields.push(v);
+      columns.push({
+        header: v,
+        dataIndex: v,
+        sortable: true,
+        filterable: true,
+        flex: 1,
+        minWidth: 30
+      });
+    }
+    var ftypes = this.guessType(all), allfilters = [{
+      type: 'string',
+      dataIndex: 'label1'
+    }, {
+      type: 'string',
+      dataIndex: 'label2'
+    }]; // colidx => type
+    for(var i = 0; i < cols.length; i++)
+    {
+      allfilters.push({
+        type: ftypes[i+2], // label1, label2 already in
+        dataIndex: cols[i]
+      });
+    }
+    var filters = new Ext.ux.grid.GridFilters({
+      local: false,
+      encode: true,
+      filters: allfilters
+    }), titles = ['FromNode', 'ToNode'].concat(cols);
+    var store = new Ext.data.ArrayStore({
+      fields: fields,
+      proxy: new Ext.data.PagingMemoryProxy(data),
+      remoteSort: true
+    });
+    store.load({params:{start:0, limit:20}});
+    var win = new Ext.Window({
+      width:450,
+      height:510,
+      title:title,
+      layout:'fit',
+      items: {
+        xtype: 'grid',
+        store: store,
+        trackMouseOver:false,
+        columns: columns,
+        plugins: [filters],
+        sm: new Ext.grid.RowSelectionModel({
+          singleSelect:true,
+          listeners: {
+            scope: this,
+            rowselect: function(sm, idx, r) {
+              this.canvas.highlightNode = [r.data.id1, r.data.id2];
+              this.canvas.draw();
+            }
+          }
+        }),
+        listeners: {
+          scope: this,
+          rowdblclick: function(g, idx, e) {
+            rows = g.getSelectionModel().getSelections();
+            if(rows && rows.length)
+            {
+              this.canvas.flashNode(rows[0].data.id1);
+              this.canvas.flashNode(rows[0].data.id2);
+            }
+          }
+        },
+        viewConfig: {
+          autoFill: true
+        },
+        bbar: new Ext.PagingToolbar({
+          pageSize: 20,
+          plugins: [filters],
+          store: store,
+          displayInfo: true,
+          displayMsg: 'Displaying edges {0} - {1} of {2}',
+          emptyMsg: "No edges to display",
+          items:[
+            '-', {
+            icon: this.imgDir + 'save.png',
+            scope: this,
+            tooltip: 'Export to Excel',
+            handler: function() {
+              var arr = store.proxy.currentRec, xls = [titles];
+              for(var i = 0; i < arr.length; i++)
+                xls.push(arr[i].json.slice(2));
+              if(this.xlsExportFn)
+                this.xlsExportFn(xls, 'networkedges');
+              else this.canvas.exportToExcel(xls);
+            }
+          }]
+        })
+      }
+    });
+    win.show();
+  },
   tagging: function(nodes, items, tagn, label) {
+    if(!nodes) return;
+    var isEdge = !!nodes.id1;
+    if(!isEdge && !nodes.length) return;
     var belong = [], notb = [], belongm = [], notbm = [];
     if(tagn)
     {
       var bseen = {}, nseen = {};
-      for(var i in tagn)
+      for(var i in tagn) // for all tags check if at least some nodes/edge do not belong to the tag
       {
-        for(var j = 0; j < nodes.length; j++)
+        if(isEdge)
         {
-          var n = nodes[j];
-          if(bseen[i] && nseen[i]) break;
-          if(!bseen[i] && tagn[i].nodes[n.id])
+          var tmp = tagn[i].edges;
+          if(tmp)
           {
-            belong.push(i);
-            bseen[i] = 1;
+            if(bseen[i] && nseen[i]) break;
+            if(!bseen[i] && tmp[nodes.id1] && tmp[nodes.id1][nodes.id2])
+            {
+              belong.push(i);
+              bseen[i] = 1;
+            }
+            else if(!nseen[i] && (!tmp[nodes.id1] || !tmp[nodes.id1][nodes.id2]))
+            {
+              notb.push(i);
+              nseen[i] = 1;
+            }
           }
-          else if(!nseen[i] && !tagn[i].nodes[n.id])
+        }
+        else
+        {
+          var tmp = tagn[i].nodes;
+          if(tmp)
           {
-            notb.push(i);
-            nseen[i] = 1;
+            for(var j = 0; j < nodes.length; j++)
+            {
+              var n = nodes[j];
+              if(bseen[i] && nseen[i]) break;
+              if(!bseen[i] && tmp[n.id])
+              {
+                belong.push(i);
+                bseen[i] = 1;
+              }
+              else if(!nseen[i] && !tmp[n.id])
+              {
+                notb.push(i);
+                nseen[i] = 1;
+              }
+            }
           }
         }
       }
@@ -1665,10 +2198,19 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
       notb.sort(Ext.canvasXpress.utils.ciSort);
     }
     var setTag = function(txt) {
-      for(var j = 0; j < nodes.length; j++)
+      if(isEdge)
       {
-        var n = nodes[j];
-        tagn[txt].nodes[n.id] = 1;
+        var e = tagn[txt].edges;
+        if(!e[nodes.id1]) e[nodes.id1] = {};
+        e[nodes.id1][nodes.id2] = 1;
+      }
+      else
+      {
+        for(var j = 0; j < nodes.length; j++)
+        {
+          var n = nodes[j];
+          tagn[txt].nodes[n.id] = 1;
+        }
       }
       this.tagChanged = true;
     }.createDelegate(this), tmenu = [
@@ -1693,7 +2235,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
               }
               else
               {
-                tagn[txt] = {show:true, nodes:{}};
+                tagn[txt] = {show:true, nodes:{}, edges:{}};
                 setTag(txt);
               }
             }
@@ -1724,18 +2266,38 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
           text: belong[i],
           scope: this,
           handler: function(b) {
-            for(var j = 0; j < nodes.length; j++)
+            if(isEdge)
             {
-              var n = nodes[j];
-              delete tagn[b.text].nodes[n.id];
+              var e = tagn[b.text].edges, found = false;
+              delete e[nodes.id1][nodes.id2];
+              for(var i in e[nodes.id1])
+              {
+                found = true;
+                break;
+              }
+              if(!found) delete e[nodes.id1];
+            }
+            else
+            {
+              for(var j = 0; j < nodes.length; j++)
+              {
+                var n = nodes[j];
+                delete tagn[b.text].nodes[n.id];
+              }
             }
             var found = false;
+            for(var i in tagn[b.text].edges)
+            {
+              found = true;
+              break;
+            }
             for(var i in tagn[b.text].nodes)
             {
               found = true;
               break;
             }
             if(!found) delete tagn[b.text];
+
             this.tagChanged = true;
           }
         });
@@ -1747,7 +2309,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
     }
     items.push({
       icon: this.imgDir + 'tag_blue.png',
-      text: 'Tagging ' + (nodes.length > 1? 'the Selected Nodes' : label),
+      text: 'Tagging ' + (!isEdge && nodes.length > 1? 'the Selected Nodes' : label),
       scope: this,
       menu: tmenu
     });
@@ -3215,7 +3777,7 @@ Ext.canvasXpress = Ext.extend(Ext.Panel, {
     }
   },
   overlays: function () {
-    if (this.canvas.hasOrientation()) {
+    if (this.canvas.hasOrientation() && this.canvas.getAnnotations) {
       var items = [];
       var os = [];
       var ov = [];
@@ -6577,6 +7139,20 @@ Ext.canvasXpress.edgeDialog = Ext.extend(Ext.Window, {
       }
       var p = bf.getValues(), p1 = fp.getComponent('startnode').items.items[0].getValue(),
           p2 = fp.getComponent('endnode').items.items[0].getValue();
+      // check if there's an edge from/to same nodes already
+      if(!isChange)
+      {
+        var egs = this.extCanvas.canvas.data.edges;
+        for(var i = 0; i < egs.length; i++)
+        {
+          var oe = egs[i];
+          if(oe.id1 == p1 && oe.id2 == p2)
+          {
+            Ext.Msg.alert('Error', 'There is already an edge from/to the same nodes! You cannot add a duplicate edge.');
+            return;
+          }
+        }
+      }
       // assembl parameters
       p.id1 = p1;
       p.id2 = p2;
@@ -6749,7 +7325,7 @@ Ext.canvasXpress.networkDialog = Ext.extend(Ext.Window, {
       });
     Ext.apply(this, {
       width: 350,
-      height: 350,
+      height: 340 + 20 * (ps[0].items.length - 4),
       items: {
         xtype: 'tabpanel',
         activeItem: 0,

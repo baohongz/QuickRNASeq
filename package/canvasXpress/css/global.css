@@ -657,6 +657,7 @@ div.example {
 div br {
   clear: both;
 }
+/*
 pre {
   padding: 10px;
   border: 2px dashed #ccc;
@@ -665,6 +666,7 @@ pre {
   background: #f0f0f0;
   white-space: pre;
 }
+*/
 .code {
   width: 535px;
   text-align: left;
