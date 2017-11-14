@@ -116,7 +116,7 @@ SRR810761	GTEX-O5YT	Pancreas	male	64065959	73.8	5.49	20.71	47282622	84.98	4.5	10
 SRR818850	GTEX-O5YT	Testis	male	64388347	84.18	3.52	12.3	54198935	80.68	4.2	15.13	125400250	58.31	4.71	23.9	10.92	2.17	42846131	1.8885	0.7161	-0.056329	-1.219374	N
 </div>
 
-<div id="canvas1" class="parcoords" style="height:240px;"></div>
+<div id="canvas1" class="parcoords" style="height:360px;"></div>
 
 <div style="padding:4px;">
 <b>Controls:</b> 
@@ -211,7 +211,7 @@ var color_set = d3.scale.linear().range(["#3182bd", "#f33"]);
 var parcoords = d3.parcoords()("#canvas1")
 	.alpha(0.4)
 	.mode("queue") // progressive rendering
-	.height(240)
+	.height(360)
 	.margin({
 		top: 36,
 		left: 0,
