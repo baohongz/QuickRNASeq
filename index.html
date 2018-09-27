@@ -69,7 +69,7 @@ document.getElementById("mask").style.display = "block";
 	$(document).ready( function() {
 		initNozzle( "r100", $ );
 		$("a#single_image").fancybox();
-		toggleContents( $( "#results_pp,#results_et"), false);
+		toggleContents( $("[id^=result]"), false);
 });
 </script>
 
@@ -83,12 +83,37 @@ document.getElementById("mask").style.display = "block";
 <div class="section" id="overview_r100">
 <div class="sectionheader"> Overview </div>
 <div class="sectionbody">
-It provides the QC metrics and expression tables, including overall read mapping statistics, QC report for each sample, interactive gene expression visualization and analytical tools to gain insights about the data.  
+It provides the QC metrics and expression tables, including overall read mapping statistics, QC report for a subset of GTEx samples, interactive gene expression visualization and analytical tools to gain insights about the data. Please click <img src=package/img/interactive.png> for interactive plots. 
 </div>
 </div>
 
+
+<!-- Overview -->
+<div class="section" id="results_team">
+<div class="sectionheader"> Team </div>
+<div class="sectionbody">
+Shanrong Zhao, Li Xi, Jie Quan, Hualin Xi, Ying Zhang, David von Schack, Michael Vincent and Baohong Zhang
+</div>
+</div>
+
+<!-- Overview -->
+<div class="section" id="results_sequencing">
+<div class="sectionheader"> Sequencing Method </div>
+<div class="sectionbody">
+RNA-seq was performed using the <a href=https://www.illumina.com/documents/products/datasheets/datasheet_truseq_sample_prep_kits.pdf>Illumina TruSeq library construction protocol (non-stranded, polyA+ selection)</a>. 
+<p>
+<p>
+Total RNA was quantified using the Quant-iTTM RiboGreen®RNA Assay Kit and normalized to 5 ng per µL. An aliquot of 200 ng for each sample was transferred into library preparation, which was an automated variant of the Illumina Tru SeqTM RNA sample preparation protocol (Revision A, 2010). This method used oligo dT beads to select mRNA from the total RNA sample followed by heat fragmentation and cDNA synthesis from the RNA template. The resultant cDNA then went through library preparation (end repair, base 'A' addition, adapter ligation, and enrichment) using Broad Institute-designed indexed adapters substituted in for multiplexing. After enrichment, the libraries were quantified with qPCR using the KAPA Library Quantification Kit for Illumina Sequencing Platforms and then pooled equimolarly. The entire process was performed in 96-well plates and all pipetting was performed by either Agilent Bravo or Hamilton Starlet liquid handlers with electronic tracking throughout the process in real-time, including reagent lot numbers, specific automation used, time stamps for each process step, and automatic registration. 
+<p>
+<p>
+Pooled libraries were normalized to 2 nM and denatured using 0.1 N NaOH prior to sequencing. Flow cell cluster amplification and sequencing were performed according to the manufacturer’s protocols using either the HiSeq 2000 or HiSeq 2500. Sequencing generated 76bp paired-end reads and an eight-base index barcode read, and was run with a coverage goal of 50M reads (the median achieved was ~82M total reads). 
+
+</div>
+</div>
+
+
 <!-- QC Metrics -->
-<div class="section" id="results_r100">
+<div class="section" id="results_qc_metrics">
 <div class="sectionheader"> QC Metrics </div>
 <div class="sectionbody">
 
@@ -182,22 +207,18 @@ Click on the image above to access the interactive plot.
 
 
 <!-- Reference -->
-<div class="section" id="references_r100">
+<div class="section" id="result_references_r100">
 <div class="sectionheader"> References </div>
 <div class="sectionbody">
 
-<div class="reference" id="reference_1_r100">
-[1] Nils Gehlenborg, <a href="https://github.com/parklab/Nozzle">Nozzle.R1 Package</a> (2013)
-</div>
-<div class="reference" id="reference_2_r100">
-[2] <a href="http://rseqc.sourceforge.net/">RSeQC: An RNA-seq Quality Control Package</a>
-</div>
-<div class="reference" id="reference_3_r100">
-[3] <a href="http://bioinformatics.oxfordjournals.org/content/29/8/1089">N Gehlenborg, MS Noble, G Getz, L Chin and PJ Park, "Nozzle: a report generation toolkit for data analysis pipelines", Bioinformatics 29:1089-1091 (2013)</a>
-</div>
-<div class="reference" id="reference_4_r100">
-[4] <a href="http://d3js.org/">D3.js - Data-Driven Documents</a>
-</div>
+<ol style="padding-left: 0px;">
+<li>S. Zhao, L. Xi, J. Quan, H. Xi, D. von Schack, M. Vincent, B. Zhang. QuickRNASeq lifts large-scale RNA-seq data analysis to next level of automation and visualization. <a href="https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-015-2356-9">BMC Genomics. 2016, 17:39.</a></li>
+<li>W. He, S. Zhao, C. Zhang, M.S. Vincent, B. Zhang. QuickRNASeq: User Guide for Pipeline Implementation and for Interactive Results Visualization. <a href=https://doi.org/10.1007/978-1-4939-7710-9_4>Methods in Molecular Biology, 2018, 1751:57-70.</a></li> 
+<li>Nils Gehlenborg. <a href="https://github.com/parklab/Nozzle">Nozzle.R1 Package</a> (2013)</li>
+<li>Wang, L., Wang, S., & Li, W. RSeQC: quality control of RNA-seq experiments. <a href="http://doi.org/10.1093/bioinformatics/bts356">Bioinformatics, 2012, 28(16), 2184–2185.</a></li>
+<li>N Gehlenborg, MS Noble, G Getz, L Chin and PJ Park. Nozzle: a report generation toolkit for data analysis pipelines. <a href="http://bioinformatics.oxfordjournals.org/content/29/8/1089">Bioinformatics 29:1089-1091 (2013)</a></li>
+<li> <a href="http://d3js.org/">D3.js - Data-Driven Documents</a></li>
+</ol>
 
 </div>
 </div>
